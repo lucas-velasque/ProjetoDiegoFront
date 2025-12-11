@@ -7,17 +7,55 @@ import { useState } from "react";
 import Image from "next/image";
 import Counter from "./Counter";
 import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
-const ProductDetails = ({ product }) => {
+interface Rating {
+  id: string;
+  rating: number;
+  review: string;
+  user: {
+    name: string;
+    image: string;
+  };
+  productId: string;
+  createdAt: Date;
+  product: {
+    name: string;
+    category: string;
+    id: string;
+  };
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  mrp: number;
+  price: number;
+  images: string[];
+  category: string;
+  storeId: string;
+  inStock: boolean;
+  rating: Rating[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProductDetailsProps {
+  product: Product;
+  onOpenPropostaModal?: () => void;
+}
+
+const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenPropostaModal }) => {
   const productId = product.id;
   const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$";
 
-  const cart = useSelector((state) => state.cart.cartItems);
+  const cart = useSelector((state: RootState) => state.cart.cartItems);
   const dispatch = useDispatch();
 
   const router = useRouter();
 
-  const [mainImage, setMainImage] = useState(product.images[0]);
+  const [mainImage, setMainImage] = useState<string>(product.images[0]);
 
   const addToCartHandler = () => {
     dispatch(addToCart({ productId }));
@@ -88,14 +126,24 @@ const ProductDetails = ({ product }) => {
               <Counter productId={productId} />
             </div>
           )}
-          <button
-            onClick={() =>
-              !cart[productId] ? addToCartHandler() : router.push("/cart")
-            }
-            className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
-          >
-            {!cart[productId] ? "Comprar" : "Ver carrinho"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() =>
+                !cart[productId] ? addToCartHandler() : router.push("/cart")
+              }
+              className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
+            >
+              {!cart[productId] ? "Comprar" : "Ver carrinho"}
+            </button>
+            {onOpenPropostaModal && (
+              <button
+                onClick={onOpenPropostaModal}
+                className="border-2 border-slate-800 text-slate-800 px-8 py-3 text-sm font-medium rounded hover:bg-slate-50 active:scale-95 transition"
+              >
+                Fazer Proposta
+              </button>
+            )}
+          </div>
         </div>
         <hr className="border-gray-300 my-5" />
         <div className="flex flex-col gap-4 text-slate-500">
