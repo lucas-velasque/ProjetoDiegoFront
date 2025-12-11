@@ -208,7 +208,7 @@ const ListaPropostas: React.FC<ListaPropostasProps> = ({ productId, tipo = "vend
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => handleAcceptProposta(proposta.id)}
-                    className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 active:scale-95 transition whitespace-nowrap"
+                    className="px-4 py-2 bg-[#00004F] text-white text-sm font-medium rounded-lg hover:bg-[#3C5AA6] active:scale-95 transition whitespace-nowrap"
                     type="button"
                   >
                     Aceitar
