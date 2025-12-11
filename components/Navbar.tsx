@@ -1,11 +1,12 @@
 "use client";
 
-import { PackageIcon, Search, ShoppingCart } from "lucide-react";
+import { PackageIcon, Search, ShoppingCart, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useSelector } from "react-redux";
 import { useUser, useClerk, UserButton } from "@clerk/nextjs";
+import { RootState } from "@/lib/store";
 
 const Navbar = () => {
   const { user } = useUser();
@@ -14,9 +15,9 @@ const Navbar = () => {
   const router = useRouter();
 
   const [search, setSearch] = useState("");
-  const cartCount = useSelector((state) => state.cart.total);
+  const cartCount = useSelector((state: RootState) => state.cart.total);
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     router.push(`/shop?search=${search}`);
   };
@@ -72,7 +73,7 @@ const Navbar = () => {
             {!user ? (
               <button
                 onClick={() => openSignIn()}
-                className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full"
+                className="px-8 py-2 bg-[#00004F] hover:bg-[#3C5AA6] transition text-white rounded-full"
               >
                 Login
               </button>
@@ -80,8 +81,18 @@ const Navbar = () => {
               <UserButton>
                 <UserButton.MenuItems>
                   <UserButton.Action
+                    labelIcon={<PlusCircle size={16} />}
+                    label="Criar Anúncio"
+                    onClick={() => router.push("/store/add-product")}
+                  />
+                  <UserButton.Action
                     labelIcon={<PackageIcon size={16} />}
-                    label="Meus pedidos"
+                    label="Meus Anúncios"
+                    onClick={() => router.push("/store/manage-product")}
+                  />
+                  <UserButton.Action
+                    labelIcon={<PackageIcon size={16} />}
+                    label="Meus Pedidos"
                     onClick={() => router.push("/orders")}
                   />
                 </UserButton.MenuItems>
@@ -94,7 +105,7 @@ const Navbar = () => {
             {!user ? (
               <button
                 onClick={() => openSignIn()}
-                className="px-7 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-sm transition text-white rounded-full"
+                className="px-7 py-1.5 bg-[#00004F] hover:bg-[#3C5AA6] text-sm transition text-white rounded-full"
               >
                 Login
               </button>
@@ -102,9 +113,24 @@ const Navbar = () => {
               <UserButton>
                 <UserButton.MenuItems>
                   <UserButton.Action
+                    labelIcon={<PlusCircle size={16} />}
+                    label="Criar Anúncio"
+                    onClick={() => router.push("/store/add-product")}
+                  />
+                  <UserButton.Action
+                    labelIcon={<PackageIcon size={16} />}
+                    label="Meus Anúncios"
+                    onClick={() => router.push("/store/manage-product")}
+                  />
+                  <UserButton.Action
                     labelIcon={<ShoppingCart size={16} />}
                     label="Carrinho"
                     onClick={() => router.push("/cart")}
+                  />
+                  <UserButton.Action
+                    labelIcon={<PackageIcon size={16} />}
+                    label="Meus Pedidos"
+                    onClick={() => router.push("/orders")}
                   />
                 </UserButton.MenuItems>
               </UserButton>
