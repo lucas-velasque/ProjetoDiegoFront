@@ -9,16 +9,85 @@ export default function CreateCategory() {
     status: "",
   });
 
+  const existingCategories = [
+    {
+      name: "Ataque",
+      type: "Ofensivo",
+      description: "Cartas agressivas",
+      status: "Ativo",
+    },
+    {
+      name: "Defesa",
+      type: "Defensivo",
+      description: "Cartas protetoras",
+      status: "Inativo",
+    },
+  ];
+
   const handleChange = (field, value) => {
     setCategory({ ...category, [field]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!category.name.trim()) {
+      alert("Por favor, preencha o campo Nome.");
+      return;
+    }
+    if (!category.type.trim()) {
+      alert("Por favor, preencha o campo Tipo.");
+      return;
+    }
+    if (!category.description.trim()) {
+      alert("Por favor, preencha o campo Descrição.");
+      return;
+    }
+    if (!category.status.trim()) {
+      alert("Por favor, preencha o campo Status.");
+      return;
+    }
+
+    if (
+      existingCategories.some(
+        (c) => c.name.toLowerCase() === category.name.toLowerCase()
+      )
+    ) {
+      alert("Já existe uma categoria com este Nome.");
+      return;
+    }
+
+    if (
+      existingCategories.some(
+        (c) => c.type.toLowerCase() === category.type.toLowerCase()
+      )
+    ) {
+      alert("Já existe uma categoria com este Tipo.");
+      return;
+    }
+
+    if (
+      existingCategories.some(
+        (c) =>
+          c.description.toLowerCase() === category.description.toLowerCase()
+      )
+    ) {
+      alert("Já existe uma categoria com esta Descrição.");
+      return;
+    }
+
+    if (
+      existingCategories.some(
+        (c) => c.status.toLowerCase() === category.status.toLowerCase()
+      )
+    ) {
+      alert("Já existe uma categoria com este Status.");
+      return;
+    }
+
     console.log("Categoria criada:", category);
     alert("Categoria criada com sucesso!");
 
-    // resetar
     setCategory({
       name: "",
       type: "",
@@ -29,15 +98,11 @@ export default function CreateCategory() {
 
   return (
     <div className="p-12 text-black w-full max-w-3xl">
-      {/* Título */}
-      <h1 className="text-3xl font-semibold mb-10">Categorias de leilões</h1>
+      <h1 className="text-3xl font-semibold mb-10">Categorias de cartas</h1>
 
-      {/* Subtítulo */}
       <h2 className="text-lg mb-8">Criar categorias</h2>
 
-      {/* Formulário */}
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Nome */}
         <div>
           <label className="block text-sm font-medium mb-2">Nome</label>
           <input
@@ -49,7 +114,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Tipo */}
         <div>
           <label className="block text-sm font-medium mb-2">Tipo</label>
           <input
@@ -61,7 +125,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Descrição */}
         <div>
           <label className="block text-sm font-medium mb-2">Descrição</label>
           <input
@@ -73,7 +136,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Status */}
         <div>
           <label className="block text-sm font-medium mb-2">Status</label>
           <input
@@ -85,7 +147,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Botão */}
         <button
           type="submit"
           className="w-full bg-cyan-400 text-white py-2 rounded-full text-center hover:bg-cyan-500 transition"

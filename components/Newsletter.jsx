@@ -49,12 +49,11 @@ const features = [
 
 const Newsletter = () => {
   return (
-    <div className="flex flex-col items-center mx-4 my-36">
+    <div id="sobre" className="flex flex-col items-center mx-4 my-36">
       <h2 className="text-3xl md:text-4xl font-extrabold text-center text-black mb-10">
         O QUE NOS TORNA UMA LOJA CONFIÁVEL?
       </h2>
 
-      {/* Descrição em destaque */}
       <p className="text-center text-black-300 max-w-2xl mx-auto mb-12">
         Quando se trata do que nos torna a principal loja de pokemon online do
         Rio de Janeiro, poderíamos nos estender em elogios sobre nossas
@@ -76,23 +75,18 @@ const Newsletter = () => {
         ))}
       </div>
 
-      {/* Card colorido */}
       <div className="w-full flex justify-center my-35">
-        {/* Card colorido com degradê */}
         <div
           className="rounded-xl p-8 shadow-lg w-[1150px] h-[342px] flex flex-col items-center justify-center gap-8"
           style={{
             background: "linear-gradient(135deg,#00BFFF, #3EB489)",
           }}
         >
-          {/* Título maior */}
           <h2 className="text-6xl font-extrabold text-white mb-6">
             Leilões diários
           </h2>
 
-          {/* Texto e botão lado a lado */}
           <div className="flex items-center gap-8">
-            {/* Bloco de frases */}
             <div className="flex flex-col gap-4">
               <p className="text-2xl text-white font-semibold">
                 O lance mínimo é 0,01 centavo!
@@ -102,7 +96,6 @@ const Newsletter = () => {
               </p>
             </div>
 
-            {/* Botão */}
             <button className="font-medium bg-black text-white px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition">
               Clique aqui
             </button>

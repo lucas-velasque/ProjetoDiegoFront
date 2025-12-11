@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 
 const Title = () => {
   const href = "/shop";
@@ -9,26 +8,22 @@ const Title = () => {
 
   return (
     <div className="flex flex-col items-center w-full px-4">
-      {/* Título */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
           A JORNADA COMEÇA COM UM CLIQUE: COMPRE AGORA!
         </h1>
       </div>
 
-      {/* Subtítulo */}
       <div className="mb-8 text-center w-full max-w-2xl">
         <h2 className="text-3xl sm:text-4xl font-bold text-slate-800">
           Escolha sua carta
         </h2>
       </div>
 
-      {/* Descrição */}
       <div className="mb-8 text-center max-w-md">
         <p className="text-lg text-slate-600">Filtre pela categoria</p>
       </div>
 
-      {/* Botões */}
       <div className="flex flex-wrap gap-4 items-center justify-center mb-6">
         <a
           href="/shop"
@@ -59,7 +54,6 @@ const Title = () => {
         </a>
       </div>
 
-      {/* Ver mais abaixo dos botões */}
       {href && visibleButton && (
         <div className="w-full flex justify-center mt-8">
           <a

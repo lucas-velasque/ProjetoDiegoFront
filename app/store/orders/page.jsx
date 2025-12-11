@@ -18,7 +18,6 @@ export default function CreateCategory() {
     console.log("Categoria criada:", category);
     alert("Categoria criada com sucesso!");
 
-    // resetar
     setCategory({
       name: "",
       type: "",
@@ -29,15 +28,11 @@ export default function CreateCategory() {
 
   return (
     <div className="p-12 text-black w-full max-w-3xl">
-      {/* Título */}
       <h1 className="text-3xl font-semibold mb-10">Categorias de leilões</h1>
 
-      {/* Subtítulo */}
       <h2 className="text-lg mb-8">Criar categorias</h2>
 
-      {/* Formulário */}
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Nome */}
         <div>
           <label className="block text-sm font-medium mb-2">Nome</label>
           <input
@@ -49,7 +44,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Tipo */}
         <div>
           <label className="block text-sm font-medium mb-2">Tipo</label>
           <input
@@ -61,7 +55,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Descrição */}
         <div>
           <label className="block text-sm font-medium mb-2">Descrição</label>
           <input
@@ -73,7 +66,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Status */}
         <div>
           <label className="block text-sm font-medium mb-2">Status</label>
           <input
@@ -85,7 +77,6 @@ export default function CreateCategory() {
           />
         </div>
 
-        {/* Botão */}
         <button
           type="submit"
           className="w-full bg-cyan-400 text-white py-2 rounded-full text-center hover:bg-cyan-500 transition"

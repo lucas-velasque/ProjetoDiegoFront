@@ -2,7 +2,6 @@ import React from "react";
 import Title from "./Title";
 import Image from "next/image";
 
-// Importando imagens diretamente
 import registroImg from "@/assets/registro.png";
 import compraImg from "@/assets/compra.png";
 import pagamentoImg from "@/assets/pagamento.png";
