@@ -7,7 +7,6 @@ import React from "react";
 const ProductCard = ({ product }) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "R$";
 
-  // calculate the average rating of the product
   const rating = Math.round(
     product.rating.reduce((acc, curr) => acc + curr.rating, 0) /
       product.rating.length

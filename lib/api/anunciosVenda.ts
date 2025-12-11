@@ -69,6 +69,11 @@ interface PaginatedResponse<T> {
 
 /**
  * Criar novo anúncio de venda
+<<<<<<< HEAD
+=======
+ * @param data - Dados do anúncio
+ * @returns Anúncio criado
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
  */
 export async function createAnuncioVenda(data: CreateAnuncioVendaDto): Promise<AnuncioVenda> {
   try {
@@ -94,6 +99,11 @@ export async function createAnuncioVenda(data: CreateAnuncioVendaDto): Promise<A
 
 /**
  * Listar todos os anúncios com filtros
+<<<<<<< HEAD
+=======
+ * @param filtros - Filtros opcionais
+ * @returns Lista paginada de anúncios ou array simples
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
  */
 export async function getAnunciosVenda(
   filtros: FiltroAnuncioVenda = {}
@@ -136,6 +146,11 @@ export async function getAnunciosVenda(
 
 /**
  * Buscar anúncio específico por ID
+<<<<<<< HEAD
+=======
+ * @param id - ID do anúncio
+ * @returns Anúncio
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
  */
 export async function getAnuncioVendaById(id: number): Promise<AnuncioVenda> {
   try {
@@ -160,6 +175,12 @@ export async function getAnuncioVendaById(id: number): Promise<AnuncioVenda> {
 
 /**
  * Atualizar anúncio
+<<<<<<< HEAD
+=======
+ * @param id - ID do anúncio
+ * @param data - Dados para atualizar
+ * @returns Anúncio atualizado
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
  */
 export async function updateAnuncioVenda(
   id: number,
@@ -188,6 +209,11 @@ export async function updateAnuncioVenda(
 
 /**
  * Deletar anúncio
+<<<<<<< HEAD
+=======
+ * @param id - ID do anúncio
+ * @returns Resultado da deleção
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
  */
 export async function deleteAnuncioVenda(id: number): Promise<{ message: string }> {
   try {
@@ -210,7 +236,11 @@ export async function deleteAnuncioVenda(id: number): Promise<{ message: string 
   }
 }
 
+<<<<<<< HEAD
 // Exportar tipos
+=======
+// Exportar tipos para uso em outros arquivos
+>>>>>>> bcffeb271a62fe83e6127eb982ded50aab02ba51
 export type {
   AnuncioVenda,
   CreateAnuncioVendaDto,

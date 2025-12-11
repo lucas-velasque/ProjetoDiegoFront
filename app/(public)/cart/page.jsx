@@ -48,8 +48,11 @@ export default function Cart() {
   return cartArray.length > 0 ? (
     <div className="min-h-screen mx-6 text-slate-800">
       <div className="max-w-7xl mx-auto ">
-        {/* Title */}
-        <PageTitle heading="Carrinho" linkText="Adicionar mais produtos" />
+        <PageTitle
+          heading="Carrinho"
+          linkText="Adicionar mais produtos"
+          linkHref="/shop"
+        />
 
         <div className="flex items-start justify-between gap-5 max-lg:flex-col">
           <table className="w-full max-w-4xl text-slate-600 table-auto">

@@ -44,7 +44,6 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
 
   return (
     <div className="my-18 text-sm text-slate-600">
-      {/* Tabs */}
       <div className="flex border-b border-slate-200 mb-6 max-w-2xl">
         {(["Description", "Reviews"] as const).map((tab, index) => (
           <button
@@ -61,12 +60,10 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
         ))}
       </div>
 
-      {/* Description */}
       {selectedTab === "Description" && (
         <p className="max-w-xl">{product.description}</p>
       )}
 
-      {/* Reviews */}
       {selectedTab === "Reviews" && (
         <div className="flex flex-col gap-3 mt-14">
           {product.rating.map((item, index) => (

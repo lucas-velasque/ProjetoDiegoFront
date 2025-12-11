@@ -8,9 +8,7 @@ const Hero = () => {
   return (
     <div className="w-full bg-[#3C5AA6] py-30">
       {" "}
-      {/* Aqui aumentei o padding vertical */}
       <div className="flex flex-col xl:flex-row items-center gap-8 max-w-7xl mx-auto px-6">
-        {/* Textos */}
         <div className="flex-1 text-white">
           <h2 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">
             Mais que um jogo, um universo para explorar.
