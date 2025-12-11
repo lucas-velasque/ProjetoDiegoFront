@@ -1,16 +1,52 @@
 "use client";
-import { ArrowRight, StarIcon } from "lucide-react";
+import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
-const ProductDescription = ({ product }) => {
-  const [selectedTab, setSelectedTab] = useState("Description");
+interface Rating {
+  id: string;
+  rating: number;
+  review: string;
+  user: {
+    name: string;
+    image: string;
+  };
+  productId: string;
+  createdAt: Date;
+  product: {
+    name: string;
+    category: string;
+    id: string;
+  };
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  mrp: number;
+  price: number;
+  images: string[];
+  category: string;
+  storeId: string;
+  inStock: boolean;
+  rating: Rating[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProductDescriptionProps {
+  product: Product;
+}
+
+const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+  const [selectedTab, setSelectedTab] = useState<"Description" | "Reviews">("Description");
 
   return (
     <div className="my-18 text-sm text-slate-600">
       {/* Tabs */}
       <div className="flex border-b border-slate-200 mb-6 max-w-2xl">
-        {["Description", "Reviews"].map((tab, index) => (
+        {(["Description", "Reviews"] as const).map((tab, index) => (
           <button
             className={`${
               tab === selectedTab
