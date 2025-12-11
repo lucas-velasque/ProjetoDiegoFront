@@ -175,7 +175,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="px-6 bg-black py-30">
+    <footer id="contato" className="px-6 bg-black py-30">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-slate-500/30 text-slate-500">
           <div>

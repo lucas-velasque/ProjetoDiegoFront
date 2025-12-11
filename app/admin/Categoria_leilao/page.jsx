@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { XIcon, SquarePenIcon, PlusIcon, Search } from "lucide-react";
 
 export default function CategoryList() {
+  const router = useRouter();
+
   const initialData = Array.from({ length: 32 }).map((_, i) => ({
     id: i + 1,
     name: `Categoria ${i + 1}`,
@@ -18,7 +21,6 @@ export default function CategoryList() {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Filtra categorias pelo nome
   const filteredData = categories.filter((cat) =>
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -43,34 +45,17 @@ export default function CategoryList() {
       prev.map((cat) => (cat.id === editing.id ? editing : cat))
     );
     setShowModal(false);
-    alert("Categoria editada com sucesso!");
   };
 
   const deleteCategory = (id) => {
-    if (confirm("Tem certeza que deseja excluir esta categoria?")) {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      alert("Categoria excluída!");
-    }
-  };
-
-  const addCategory = () => {
-    const newCategory = {
-      id: categories.length + 1,
-      name: `Nova Categoria`,
-      type: "Produto",
-      description: "Descrição",
-      status: "Ativo",
-    };
-    setCategories([newCategory, ...categories]);
-    alert("Categoria adicionada com sucesso!");
+    setCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
   return (
     <div className="p-12 max-w-7xl mx-auto text-black w-full">
-      {/* Botão adicionar acima do título */}
       <div className="flex justify-end mb-4">
         <button
-          onClick={addCategory}
+          onClick={() => router.push("/admin/cad_categoria_leilao")}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
         >
           <PlusIcon size={18} />
@@ -79,10 +64,9 @@ export default function CategoryList() {
       </div>
 
       <h1 className="text-3xl font-semibold text-gray-800 mb-6 tracking-tight">
-        Categorias de Leilões
+        Categorias de cartas
       </h1>
 
-      {/* Barra de busca */}
       <div className="relative mb-6 w-full max-w-md">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={18} />
@@ -99,7 +83,6 @@ export default function CategoryList() {
         />
       </div>
 
-      {/* Tabela */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
@@ -113,7 +96,6 @@ export default function CategoryList() {
             </tr>
           </thead>
           <tbody>
-            {/* Linha preta separando cabeçalho */}
             <tr>
               <td colSpan={6} className="border-b-2 border-black"></td>
             </tr>
@@ -151,7 +133,6 @@ export default function CategoryList() {
         </table>
       </div>
 
-      {/* Paginação */}
       <div className="flex justify-center gap-3 mt-6">
         <button
           disabled={page === 1}
@@ -182,7 +163,6 @@ export default function CategoryList() {
         </button>
       </div>
 
-      {/* Modal edição */}
       {showModal && editing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-8 border border-gray-200">

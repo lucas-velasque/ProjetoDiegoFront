@@ -1,14 +1,31 @@
 "use client";
+
 import { useState } from "react";
 import { XIcon, SquarePenIcon, PlusIcon, Search } from "lucide-react";
+import Link from "next/link";
 
-export default function CategoryList() {
-  const initialData = Array.from({ length: 32 }).map((_, i) => ({
-    id: i + 1,
-    name: `Categoria ${i + 1}`,
-    type: ["Produto", "Serviço", "Bem"][i % 3],
-    description: `Descrição da categoria ${i + 1}`,
-    status: i % 2 === 0 ? "Ativo" : "Inativo",
+export default function UserLevels() {
+  const CORES = {
+    Branco: 100,
+    Cinza: 200,
+    Verde: 300,
+    Azul: 400,
+    Roxo: 500,
+    Vermelho: 600,
+    Preto: 700,
+    Bronze: 800,
+    Prata: 900,
+    Ouro: 1000,
+  };
+
+  const coresLista = Object.keys(CORES);
+
+  const initialData = coresLista.map((cor, index) => ({
+    id: index + 1,
+    name: `Nível ${index + 1}`,
+    description: `Nível de usuário cor ${cor}`,
+    cor: cor,
+    pontuacao: CORES[cor],
   }));
 
   const [categories, setCategories] = useState(initialData);
@@ -18,7 +35,6 @@ export default function CategoryList() {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Filtra categorias pelo nome
   const filteredData = categories.filter((cat) =>
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -39,57 +55,61 @@ export default function CategoryList() {
   };
 
   const saveEdit = () => {
+    const updated = {
+      ...editing,
+      pontuacao: CORES[editing.cor],
+    };
     setCategories((prev) =>
-      prev.map((cat) => (cat.id === editing.id ? editing : cat))
+      prev.map((cat) => (cat.id === editing.id ? updated : cat))
     );
     setShowModal(false);
-    alert("Categoria editada com sucesso!");
+    alert("Nível atualizado!");
   };
 
   const deleteCategory = (id) => {
-    if (confirm("Tem certeza que deseja excluir esta categoria?")) {
+    if (confirm("Tem certeza que deseja excluir esse nível?")) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      alert("Categoria excluída!");
+      alert("Nível excluído!");
     }
-  };
-
-  const addCategory = () => {
-    const newCategory = {
-      id: categories.length + 1,
-      name: `Nova Categoria`,
-      type: "Produto",
-      description: "Descrição",
-      status: "Ativo",
-    };
-    setCategories([newCategory, ...categories]);
-    alert("Categoria adicionada com sucesso!");
   };
 
   return (
     <div className="p-12 max-w-7xl mx-auto text-black w-full">
-      {/* Botão adicionar acima do título */}
+      {/* Botão Adicionar com Link */}
       <div className="flex justify-end mb-4">
-        <button
-          onClick={addCategory}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
-        >
-          <PlusIcon size={18} />
-          Adicionar
-        </button>
+        <Link href="/admin/cad_nivel_usuario">
+          <button
+            onClick={() => {
+              const defaultCor = "Branco";
+              const newCategory = {
+                id: categories.length + 1,
+                name: `Nível ${categories.length + 1}`,
+                description: "Novo nível de usuário",
+                cor: defaultCor,
+                pontuacao: CORES[defaultCor],
+              };
+              setCategories([...categories, newCategory]); // adiciona antes do redirecionamento
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
+          >
+            <PlusIcon size={18} />
+            Adicionar
+          </button>
+        </Link>
       </div>
 
       <h1 className="text-3xl font-semibold text-gray-800 mb-6 tracking-tight">
-        Categorias de Leilões
+        Níveis de usuário
       </h1>
 
-      {/* Barra de busca */}
+      {/* Busca */}
       <div className="relative mb-6 w-full max-w-md">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={18} />
         </span>
         <input
           type="text"
-          placeholder="Buscar categorias..."
+          placeholder="Buscar níveis..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -107,13 +127,12 @@ export default function CategoryList() {
               <th className="p-4 w-12"></th>
               <th className="p-4 w-12"></th>
               <th className="p-4 text-left">Nome</th>
-              <th className="p-4 text-left">Tipo</th>
               <th className="p-4 text-left">Descrição</th>
-              <th className="p-4 text-center w-32">Status</th>
+              <th className="p-4 text-left">Cor</th>
+              <th className="p-4 text-center w-32">Pontuação</th>
             </tr>
           </thead>
           <tbody>
-            {/* Linha preta separando cabeçalho */}
             <tr>
               <td colSpan={6} className="border-b-2 border-black"></td>
             </tr>
@@ -142,9 +161,9 @@ export default function CategoryList() {
                 </td>
 
                 <td className="p-4">{cat.name}</td>
-                <td className="p-4">{cat.type}</td>
                 <td className="p-4">{cat.description}</td>
-                <td className="p-4 text-center">{cat.status}</td>
+                <td className="p-4">{cat.cor}</td>
+                <td className="p-4 text-center">{cat.pontuacao}</td>
               </tr>
             ))}
           </tbody>
@@ -182,30 +201,73 @@ export default function CategoryList() {
         </button>
       </div>
 
-      {/* Modal edição */}
+      {/* Modal de edição */}
       {showModal && editing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-8 border border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Editar categoria
+              Editar Nível
             </h2>
 
             <div className="space-y-5">
-              {["name", "type", "description", "status"].map((field) => (
-                <div key={field}>
-                  <label className="block text-sm text-gray-600 mb-1 capitalize">
-                    {field}
-                  </label>
-                  <input
-                    type="text"
-                    value={editing[field]}
-                    onChange={(e) =>
-                      setEditing({ ...editing, [field]: e.target.value })
-                    }
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Nome</label>
+                <input
+                  type="text"
+                  value={editing.name}
+                  onChange={(e) =>
+                    setEditing({ ...editing, name: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Descrição
+                </label>
+                <input
+                  type="text"
+                  value={editing.description}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Cor</label>
+                <select
+                  value={editing.cor}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      cor: e.target.value,
+                      pontuacao: CORES[e.target.value],
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                >
+                  {coresLista.map((cor) => (
+                    <option key={cor} value={cor}>
+                      {cor}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Pontuação
+                </label>
+                <input
+                  type="number"
+                  value={CORES[editing.cor]}
+                  disabled
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm bg-gray-100"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-8">
