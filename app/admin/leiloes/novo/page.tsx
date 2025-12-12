@@ -160,7 +160,7 @@ export default function NovoLeilaoAdminPage() {
                 inputMode="numeric"
                 placeholder="Ex: 1"
               />
-              <p className="text-xs text-gray-500">             
+              <p className="text-xs text-gray-500">
               </p>
             </div>
           </div>

@@ -7,7 +7,13 @@ import {
   Paginated,
 } from "../types/leilao";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+/**
+ * OBS:
+ * - Este módulo usa fetch (não depende de axios).
+ * - Exporta tanto funções nomeadas quanto `leiloesApi` para compatibilidade
+ *   com projetos que já importavam `leiloesApi`.
+ */
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URI || "http://localhost:3000";
 
 function buildQuery(params: Record<string, unknown>) {
   const sp = new URLSearchParams();
@@ -117,3 +123,14 @@ export async function excluirLeilao(id: string): Promise<void> {
     throw new Error(extractErrorMessage(payload));
   }
 }
+
+// ✅ compat: projetos que esperam `leiloesApi`
+export const leiloesApi = {
+  listarLeiloes,
+  buscarLeilao,
+  criarLeilao,
+  atualizarLeilao,
+  excluirLeilao,
+};
+
+export default leiloesApi;
