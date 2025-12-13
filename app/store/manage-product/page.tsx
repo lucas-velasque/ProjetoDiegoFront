@@ -185,6 +185,13 @@ export default function StoreManageProducts() {
                       <Eye size={16} />
                     </button>
                     <button
+                      onClick={() => router.push(`/store/edit-product/${anuncio.id}`)}
+                      className="p-2 text-slate-600 hover:bg-slate-50 rounded transition"
+                      title="Editar"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
                       onClick={() => toggleStatus(anuncio.id, anuncio.status)}
                       className={`px-3 py-1 text-xs rounded transition ${
                         anuncio.status === 'ativo'
@@ -243,16 +250,22 @@ export default function StoreManageProducts() {
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => router.push(`/product/${anuncio.id}`)}
-                className="flex-1 px-3 py-2 border border-slate-300 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition"
+                className="px-3 py-2 border border-slate-300 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition"
               >
                 Visualizar
               </button>
               <button
+                onClick={() => router.push(`/store/edit-product/${anuncio.id}`)}
+                className="px-3 py-2 border border-slate-300 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition"
+              >
+                Editar
+              </button>
+              <button
                 onClick={() => toggleStatus(anuncio.id, anuncio.status)}
-                className={`flex-1 px-3 py-2 text-sm rounded-lg transition ${
+                className={`px-3 py-2 text-sm rounded-lg transition ${
                   anuncio.status === 'ativo'
                     ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                     : 'bg-green-100 text-green-800 hover:bg-green-200'
