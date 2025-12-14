@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import {
   Headphones,
   ShieldCheck,
@@ -96,9 +97,12 @@ const Newsletter = () => {
               </p>
             </div>
 
-            <button className="font-medium bg-black text-white px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition">
+            <Link
+              href="/leiloes"
+              className="font-medium bg-black text-white px-8 py-4 rounded-full text-lg hover:bg-gray-900 transition"
+            >
               Clique aqui
-            </button>
+            </Link>
           </div>
         </div>
       </div>
