@@ -12,6 +12,8 @@ export type ListParams = {
   limit?: number;
   scope?: 'all' | 'mine';
   ownerId?: string;
+  // Apenas para mock/UX (não afeta filtros): nome exibido do dono do leilão ao bootstrapar dados.
+  ownerNome?: string;
 };
 
 export type ListResult = {
@@ -43,6 +45,69 @@ function writeAll(data: LeilaoMock[]) {
   window.localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(data));
 }
 
+function genId(prefix = 'l_') {
+  // randomUUID é o melhor, mas nem sempre existe em runtimes antigos
+  const anyCrypto = (globalThis as any).crypto;
+  if (anyCrypto?.randomUUID) return prefix + anyCrypto.randomUUID();
+  return prefix + Math.floor(Math.random() * 900000 + 100000).toString();
+}
+
+function bootstrapMineIfEmpty(all: LeilaoMock[], ownerId: string, ownerNome?: string) {
+  // Só faz bootstrap se o usuário ainda não tem nenhum leilão salvo no mock.
+  const hasAny = all.some(l => l.ownerId === ownerId);
+  if (hasAny) return all;
+
+  const nome = (ownerNome?.trim() || 'Você').slice(0, 80);
+  const now = Date.now();
+
+  // Cria alguns exemplos (ativos e 1 finalizado) para o usuário conseguir testar filtros/paginação/CRUD.
+  const samples: LeilaoMock[] = [
+    {
+      id: genId(),
+      titulo: 'Charizard (mock) - 1ª Edição',
+      descricao: 'Exemplo de leilão criado automaticamente para testes de UI (usuário).',
+      precoInicial: 10.0,
+      precoAtual: 14.25,
+      status: 'ativo',
+      terminaEm: new Date(now + 1000 * 60 * 60 * 24 * 2).toISOString(),
+      ownerId,
+      ownerNome: nome,
+      createdAt: new Date(now - 1000 * 60 * 60).toISOString(),
+      updatedAt: new Date(now - 1000 * 60 * 30).toISOString(),
+    },
+    {
+      id: genId(),
+      titulo: 'Pikachu (mock) - Holo',
+      descricao: 'Leilão de exemplo para testar busca e edição.',
+      precoInicial: 5.0,
+      precoAtual: 5.0,
+      status: 'ativo',
+      terminaEm: new Date(now + 1000 * 60 * 60 * 12).toISOString(),
+      ownerId,
+      ownerNome: nome,
+      createdAt: new Date(now - 1000 * 60 * 20).toISOString(),
+      updatedAt: new Date(now - 1000 * 60 * 20).toISOString(),
+    },
+    {
+      id: genId(),
+      titulo: 'Eevee (mock) - Near Mint',
+      descricao: 'Um exemplo finalizado para testar filtro de status.',
+      precoInicial: 3.0,
+      precoAtual: 7.9,
+      status: 'finalizado',
+      terminaEm: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
+      ownerId,
+      ownerNome: nome,
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 7).toISOString(),
+      updatedAt: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    },
+  ];
+
+  const next = [...all, ...samples];
+  writeAll(next);
+  return next;
+}
+
 function toMoney(n: unknown): number {
   const v = Number(n);
   return Number.isFinite(v) ? v : 0;
@@ -62,12 +127,18 @@ export function canEdit(leilao: LeilaoMock, opts: { isAdmin: boolean; userId?: s
 }
 
 export async function listLeiloes(params: ListParams): Promise<ListResult> {
-  const all = ensureSeed();
+  let all = ensureSeed();
 
   const q = (params.q ?? '').trim().toLowerCase();
   const status = params.status ?? 'todos';
   const scope = params.scope ?? 'all';
   const ownerId = params.ownerId;
+
+  // Se o usuário nunca teve dados mockados, criamos alguns exemplos automaticamente
+  // para a tela "Meus Leilões" não ficar vazia.
+  if (scope === 'mine' && ownerId) {
+    all = bootstrapMineIfEmpty(all, ownerId, params.ownerNome);
+  }
 
   let filtered = [...all];
 

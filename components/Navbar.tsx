@@ -1,6 +1,6 @@
 "use client";
 
-import { PackageIcon, Search, ShoppingCart, PlusCircle } from "lucide-react";
+import { PackageIcon, Search, ShoppingCart, PlusCircle, Gavel } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
@@ -93,7 +93,12 @@ const Navbar = () => {
                     label="Meus Anúncios"
                     onClick={() => router.push("/store/manage-product")}
                   />
-                  <UserButton.Action
+                                  <UserButton.Action
+                    label="Meus Leilões"
+                    labelIcon={<Gavel className="h-4 w-4" />}
+                    onClick={() => router.push("/store/leiloes")}
+                />
+<UserButton.Action
                     labelIcon={<PackageIcon size={16} />}
                     label="Meus Pedidos"
                     onClick={() => router.push("/orders")}
@@ -124,7 +129,12 @@ const Navbar = () => {
                     label="Meus Anúncios"
                     onClick={() => router.push("/store/manage-product")}
                   />
-                  <UserButton.Action
+                                  <UserButton.Action
+                    label="Meus Leilões"
+                    labelIcon={<Gavel className="h-4 w-4" />}
+                    onClick={() => router.push("/store/leiloes")}
+                />
+<UserButton.Action
                     labelIcon={<ShoppingCart size={16} />}
                     label="Carrinho"
                     onClick={() => router.push("/cart")}
