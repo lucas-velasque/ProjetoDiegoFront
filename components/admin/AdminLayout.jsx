@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Loading from "../Loading";
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
@@ -7,12 +8,40 @@ import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = ({ children }) => {
+  const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchIsAdmin = async () => {
-    setIsAdmin(true);
-    setLoading(false);
+    try {
+      // Verificar se há token de admin no localStorage
+      const adminToken = localStorage.getItem("admin_token");
+      const adminUser = localStorage.getItem("admin_user");
+
+      if (adminToken && adminUser) {
+        try {
+          const user = JSON.parse(adminUser);
+          // Verificar se o usuário é admin (nivel_usuario_id = 1)
+          if (user.nivel_usuario_id === 1) {
+            setIsAdmin(true);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Erro ao parsear admin user:", error);
+        }
+      }
+
+      // Se não tem token ou não é admin, redirecionar para login
+      setIsAdmin(false);
+      setLoading(false);
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Erro ao verificar admin:", error);
+      setIsAdmin(false);
+      setLoading(false);
+      router.push("/admin/login");
+    }
   };
 
   useEffect(() => {
@@ -37,10 +66,10 @@ const AdminLayout = ({ children }) => {
         Você não tem autorização para acessar essa página
       </h1>
       <Link
-        href="/"
+        href="/admin/login"
         className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full"
       >
-        Ir para home <ArrowRightIcon size={18} />
+        Ir para login <ArrowRightIcon size={18} />
       </Link>
     </div>
   );
