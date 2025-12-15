@@ -17,10 +17,10 @@ export const anunciosVendaApi = {
   },
 
   getById: async (id: number) => {
-    const response = await apiClient.get<{ data: AnuncioVenda }>(
+    const response = await apiClient.get<AnuncioVenda>(
       `/anuncios-venda/${id}`
     );
-    return response.data.data;
+    return response.data;
   },
 
   create: async (data: CreateAnuncioVendaDto) => {

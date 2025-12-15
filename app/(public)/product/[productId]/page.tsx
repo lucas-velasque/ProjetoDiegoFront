@@ -56,24 +56,39 @@ export default function Product() {
 
       const anuncio = await getAnuncioVendaById(Number(productId));
 
+      console.log('Anúncio recebido:', anuncio);
+
+      if (!anuncio) {
+        throw new Error('Anúncio não encontrado');
+      }
+
+      // Extrair imagens das cartas do anúncio
+      const cartaImages = anuncio.cartas
+        ?.map((c: any) => c.carta?.imagem_url)
+        .filter((url: string) => url) || [];
+
       // Converter AnuncioVenda para Product
       const productData: Product = {
-        id: anuncio.id.toString(),
-        name: anuncio.titulo,
+        id: anuncio.id?.toString() || '',
+        name: anuncio.titulo || 'Sem título',
         description: anuncio.descricao || '',
-        mrp: Number(anuncio.preco_total) * 1.2, // Simulando preço original
-        price: Number(anuncio.preco_total),
-        images: ['/placeholder-product.png'], // Placeholder até integrar upload
+        mrp: Number(anuncio.preco_total || 0) * 1.2, // Simulando preço original
+        price: Number(anuncio.preco_total || 0),
+        images: cartaImages.length > 0
+          ? cartaImages
+          : ['https://via.placeholder.com/400x400?text=Sem+Imagem'], // Placeholder online
         category: 'Cartas',
-        storeId: anuncio.usuario_id.toString(),
-        inStock: anuncio.quantidade_disponivel > 0,
+        storeId: anuncio.usuario_id?.toString() || '',
+        inStock: (anuncio.quantidade_disponivel || 0) > 0,
         rating: [], // Por enquanto vazio
-        createdAt: anuncio.created_at,
-        updatedAt: anuncio.updated_at,
+        createdAt: anuncio.created_at || new Date(),
+        updatedAt: anuncio.updated_at || new Date(),
       };
 
+      console.log('Product data:', productData);
       setProduct(productData);
     } catch (err) {
+      console.error('Erro ao buscar produto:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produto';
       setError(errorMessage);
       toast.error(errorMessage);

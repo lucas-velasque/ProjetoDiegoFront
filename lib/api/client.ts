@@ -8,10 +8,29 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor para adicionar JWT automaticamente
+// Função helper para obter token do Clerk
+async function getClerkToken(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    // Tentar obter o token do Clerk via window.__clerk_session_token
+    // ou através do método getToken se disponível
+    const clerk = (window as any).Clerk;
+    if (clerk?.session) {
+      return await clerk.session.getToken();
+    }
+  } catch (error) {
+    console.error('Erro ao obter token do Clerk:', error);
+  }
+
+  // Fallback: tentar localStorage (para compatibilidade com sistema antigo)
+  return localStorage.getItem('token');
+}
+
+// Interceptor para adicionar JWT do Clerk automaticamente
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
+  async (config) => {
+    const token = await getClerkToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,10 +46,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado ou inválido - redirecionar para login
+      // Token expirado ou inválido - não redirecionar se estiver usando Clerk
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        const clerk = (window as any).Clerk;
+        if (!clerk) {
+          // Só redirecionar se não estiver usando Clerk
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
