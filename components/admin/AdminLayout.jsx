@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,7 +77,7 @@ const AdminLayout = ({ children }) => {
 };
 
 export default AdminLayout;
-=======
+
 "use client";
 import { useEffect, useState } from "react";
 import Loading from "../Loading";
@@ -127,4 +127,4 @@ const AdminLayout = ({ children }) => {
 };
 
 export default AdminLayout;
->>>>>>> origin/main
+
