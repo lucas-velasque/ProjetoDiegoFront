@@ -9,20 +9,6 @@ export default function CreateCategory() {
     status: "",
   });
 
-  const existingCategories = [
-    {
-      name: "Ataque",
-      type: "Ofensivo",
-      description: "Cartas agressivas",
-      status: "Ativo",
-    },
-    {
-      name: "Defesa",
-      type: "Defensivo",
-      description: "Cartas protetoras",
-      status: "Inativo",
-    },
-  ];
 
   const handleChange = (field, value) => {
     setCategory({ ...category, [field]: value });
