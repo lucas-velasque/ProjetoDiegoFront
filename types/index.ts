@@ -187,43 +187,124 @@ export interface UpdateCategoriaLeilaoDto {
 }
 
 // ==================== ANUNCIO VENDA ====================
+export interface AnuncioVendaCarta {
+  id?: number;
+  anuncio_venda_id?: number;
+  carta_id: number;
+  quantidade: number;
+  condicao?: string;
+  observacoes?: string;
+  carta?: Carta;
+}
+
 export interface AnuncioVenda {
   id: number;
   usuario_id: number;
-  carta_id: number;
-  preco: number;
-  quantidade: number;
-  condicao: string;
+  titulo: string;
+  descricao?: string;
+  preco_total: number;
+  quantidade_disponivel: number;
   status: 'ativo' | 'vendido' | 'cancelado';
   created_at?: string;
   updated_at?: string;
   usuario?: User;
-  carta?: Carta;
+  cartas?: AnuncioVendaCarta[];
 }
 
 export interface CreateAnuncioVendaDto {
-  usuario_id: number;
-  carta_id: number;
-  preco: number;
-  quantidade: number;
-  condicao: string;
+  titulo: string;
+  descricao?: string;
+  preco_total: number;
+  quantidade_disponivel: number;
+  cartas: {
+    carta_id: number;
+    quantidade: number;
+    condicao?: string;
+    observacoes?: string;
+  }[];
 }
 
 export interface UpdateAnuncioVendaDto {
-  preco?: number;
-  quantidade?: number;
-  condicao?: string;
+  titulo?: string;
+  descricao?: string;
+  preco_total?: number;
+  quantidade_disponivel?: number;
   status?: 'ativo' | 'vendido' | 'cancelado';
 }
 
 export interface FiltroAnuncioVendaDto {
   nome_carta?: string;
   usuario_id?: number;
-  carta_id?: number;
   status?: 'ativo' | 'vendido' | 'cancelado';
   preco_min?: number;
   preco_max?: number;
   condicao?: string;
+  raridade?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  page?: number;
+  limit?: number;
+}
+
+// ==================== ANUNCIO COMPRA ====================
+export interface AnuncioCompra {
+  id: number;
+  usuario_id: number;
+  nome_carta: string;
+  expansao?: string;
+  numero_expansao?: string;
+  raridade?: string;
+  edicao?: string;
+  quantidade: number;
+  preco_maximo?: number;
+  condicao_minima?: string;
+  tipos?: string[];
+  variacao?: string;
+  descricao?: string;
+  status: 'ativo' | 'finalizado' | 'cancelado';
+  created_at?: string;
+  updated_at?: string;
+  usuario?: User;
+}
+
+export interface CreateAnuncioCompraDto {
+  nome_carta: string;
+  expansao?: string;
+  numero_expansao?: string;
+  raridade?: string;
+  edicao?: string;
+  quantidade: number;
+  preco_maximo?: number;
+  condicao_minima?: string;
+  tipos?: string[];
+  variacao?: string;
+  descricao?: string;
+}
+
+export interface UpdateAnuncioCompraDto {
+  nome_carta?: string;
+  expansao?: string;
+  numero_expansao?: string;
+  raridade?: string;
+  edicao?: string;
+  quantidade?: number;
+  preco_maximo?: number;
+  condicao_minima?: string;
+  tipos?: string[];
+  variacao?: string;
+  descricao?: string;
+  status?: 'ativo' | 'finalizado' | 'cancelado';
+}
+
+export interface FiltroAnuncioCompraDto {
+  nome_carta?: string;
+  usuario_id?: number;
+  status?: 'ativo' | 'finalizado' | 'cancelado';
+  preco_min?: number;
+  preco_max?: number;
+  raridade?: string;
+  edicao?: string;
+  condicao_minima?: string;
   data_inicio?: string;
   data_fim?: string;
   page?: number;
