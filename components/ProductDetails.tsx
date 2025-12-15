@@ -55,15 +55,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenProposta
 
   const router = useRouter();
 
-  const [mainImage, setMainImage] = useState<string>(product.images[0]);
+  const [mainImage, setMainImage] = useState<string>(product.images[0] || '/placeholder-product.png');
 
   const addToCartHandler = () => {
     dispatch(addToCart({ productId }));
   };
 
   const averageRating =
-    product.rating.reduce((acc, item) => acc + item.rating, 0) /
-    product.rating.length;
+    product.rating && product.rating.length > 0
+      ? product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length
+      : 0;
 
   return (
     <div className="flex max-lg:flex-col gap-12">
@@ -105,7 +106,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenProposta
               />
             ))}
           <p className="text-sm ml-3 text-slate-500">
-            {product.rating.length} Avaliações
+            {product.rating?.length || 0} Avaliações
           </p>
         </div>
         <div className="flex items-start my-6 gap-3 text-2xl font-semibold text-slate-800">

@@ -66,36 +66,40 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
 
       {selectedTab === "Reviews" && (
         <div className="flex flex-col gap-3 mt-14">
-          {product.rating.map((item, index) => (
-            <div key={index} className="flex gap-5 mb-10">
-              <Image
-                src={item.user.image}
-                alt=""
-                className="size-10 rounded-full"
-                width={100}
-                height={100}
-              />
-              <div>
-                <div className="flex items-center">
-                  {Array(5)
-                    .fill("")
-                    .map((_, index) => (
-                      <StarIcon
-                        key={index}
-                        size={18}
-                        className="text-transparent mt-0.5"
-                        fill={item.rating >= index + 1 ? "#00C950" : "#D1D5DB"}
-                      />
-                    ))}
+          {product.rating && product.rating.length > 0 ? (
+            product.rating.map((item, index) => (
+              <div key={index} className="flex gap-5 mb-10">
+                <Image
+                  src={item.user.image}
+                  alt=""
+                  className="size-10 rounded-full"
+                  width={100}
+                  height={100}
+                />
+                <div>
+                  <div className="flex items-center">
+                    {Array(5)
+                      .fill("")
+                      .map((_, index) => (
+                        <StarIcon
+                          key={index}
+                          size={18}
+                          className="text-transparent mt-0.5"
+                          fill={item.rating >= index + 1 ? "#00C950" : "#D1D5DB"}
+                        />
+                      ))}
+                  </div>
+                  <p className="text-sm max-w-lg my-4">{item.review}</p>
+                  <p className="font-medium text-slate-800">{item.user.name}</p>
+                  <p className="mt-3 font-light">
+                    {new Date(item.createdAt).toDateString()}
+                  </p>
                 </div>
-                <p className="text-sm max-w-lg my-4">{item.review}</p>
-                <p className="font-medium text-slate-800">{item.user.name}</p>
-                <p className="mt-3 font-light">
-                  {new Date(item.createdAt).toDateString()}
-                </p>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-slate-400 text-center py-8">Nenhuma avaliação ainda</p>
+          )}
         </div>
       )}
     </div>
