@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getAnunciosVenda, deleteAnuncioVenda, updateAnuncioVenda, type AnuncioVenda } from "@/lib/api/anunciosVenda";
+import { getMeusAnunciosVenda, deleteAnuncioVenda, updateAnuncioVenda, type AnuncioVenda } from "@/lib/api/anunciosVenda";
 import toast from "react-hot-toast";
 import { Trash2, Edit, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,11 +18,8 @@ export default function StoreManageProducts() {
       setLoading(true);
       setError(null);
 
-      // Buscar apenas anúncios do usuário atual
-      // TODO: Quando implementar autenticação, filtrar por usuario_id
-      const response = await getAnunciosVenda();
-
-      const data = Array.isArray(response) ? response : response.data;
+      // Buscar apenas anúncios do usuário logado
+      const data = await getMeusAnunciosVenda();
       setAnuncios(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar anúncios';
