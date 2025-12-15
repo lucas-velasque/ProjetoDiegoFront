@@ -3,9 +3,10 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createAnuncioVenda } from "@/lib/api/anunciosVenda";
 import toast from "react-hot-toast";
-import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import CardSelector from "./components/CardSelector";
 import { Carta } from "@/types";
+import { useImageUpload } from "@/lib/hooks/useImageUpload";
 
 interface CartaFormData {
   carta_id: number;
@@ -15,11 +16,13 @@ interface CartaFormData {
   observacoes: string;
   foto?: File;
   foto_preview?: string;
+  foto_url?: string;
 }
 
 export default function StoreAddProduct() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { uploadImage, uploading } = useImageUpload();
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -121,17 +124,39 @@ export default function StoreAddProduct() {
     setLoading(true);
 
     try {
+      // Fazer upload das fotos antes de criar o anúncio
+      const cartasComFoto = await Promise.all(
+        cartas.map(async (carta) => {
+          let foto_url = undefined;
+
+          if (carta.foto) {
+            toast.loading(`Fazendo upload da foto da carta ${carta.cartaData?.nome || carta.carta_id}...`);
+            const { url, error } = await uploadImage(carta.foto, 'cartas');
+            toast.dismiss();
+
+            if (error) {
+              throw new Error(`Erro ao fazer upload: ${error}`);
+            }
+
+            foto_url = url || undefined;
+          }
+
+          return {
+            carta_id: carta.carta_id,
+            quantidade: carta.quantidade,
+            condicao: carta.condicao || undefined,
+            observacoes: carta.observacoes || undefined,
+            foto_url,
+          };
+        })
+      );
+
       await createAnuncioVenda({
         titulo: formData.titulo,
         descricao: formData.descricao || undefined,
         preco_total: Number(formData.preco_total),
         quantidade_disponivel: Number(formData.quantidade_disponivel),
-        cartas: cartas.map(c => ({
-          carta_id: c.carta_id,
-          quantidade: c.quantidade,
-          condicao: c.condicao || undefined,
-          observacoes: c.observacoes || undefined,
-        })),
+        cartas: cartasComFoto,
       });
 
       toast.success("Anúncio criado com sucesso!");
@@ -392,10 +417,17 @@ export default function StoreAddProduct() {
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 md:flex-none md:px-12 py-3 bg-[#00004F] text-white font-medium rounded-full hover:bg-[#3C5AA6] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || uploading}
+              className="flex-1 md:flex-none md:px-12 py-3 bg-[#00004F] text-white font-medium rounded-full hover:bg-[#3C5AA6] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "Adicionando..." : "Adicionar Anúncio"}
+              {loading || uploading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  {uploading ? "Fazendo upload..." : "Adicionando..."}
+                </>
+              ) : (
+                "Adicionar Anúncio"
+              )}
             </button>
 
             <button

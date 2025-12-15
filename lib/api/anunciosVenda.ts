@@ -16,6 +16,13 @@ export const anunciosVendaApi = {
     return response.data;
   },
 
+  getMeusAnuncios: async () => {
+    const response = await apiClient.get<AnuncioVenda[]>(
+      '/anuncios-venda/meus-anuncios'
+    );
+    return response.data;
+  },
+
   getById: async (id: number) => {
     const response = await apiClient.get<AnuncioVenda>(
       `/anuncios-venda/${id}`
@@ -49,6 +56,7 @@ export const anunciosVendaApi = {
 
 // Backward compatible exports for legacy code
 export const getAnunciosVenda = anunciosVendaApi.getAll;
+export const getMeusAnunciosVenda = anunciosVendaApi.getMeusAnuncios;
 export const getAnuncioVendaById = anunciosVendaApi.getById;
 export const createAnuncioVenda = anunciosVendaApi.create;
 export const updateAnuncioVenda = anunciosVendaApi.update;

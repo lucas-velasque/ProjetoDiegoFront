@@ -12,6 +12,7 @@
     "@clerk/localizations": "^3.29.0",
     "@clerk/nextjs": "^6.35.6",
     "@reduxjs/toolkit": "^2.8.2",
+    "@supabase/supabase-js": "^2.87.1",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.525.0",

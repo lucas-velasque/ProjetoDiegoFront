@@ -63,8 +63,9 @@ export default function Product() {
       }
 
       // Extrair imagens das cartas do anúncio
+      // Prioriza foto_url (foto enviada pelo usuário) sobre imagem_url (foto da carta)
       const cartaImages = anuncio.cartas
-        ?.map((c: any) => c.carta?.imagem_url)
+        ?.map((c: any) => c.foto_url || c.carta?.imagem_url)
         .filter((url: string) => url) || [];
 
       // Converter AnuncioVenda para Product
