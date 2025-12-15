@@ -2,10 +2,10 @@
 
 import LeilaoFormClient from '@/components/leiloes/LeilaoFormClient';
 
-export default function AdminNovoLeilaoPage() {
+export default function StoreEditarLeilaoPage() {
   return (
     <div className="p-6">
-      <LeilaoFormClient mode="admin" action="create" />
+      <LeilaoFormClient mode="user" action="edit" />
     </div>
   );
 }

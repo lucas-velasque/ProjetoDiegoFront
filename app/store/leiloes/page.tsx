@@ -2,10 +2,10 @@
 
 import LeiloesListClient from '@/components/leiloes/LeiloesListClient';
 
-export default function AdminLeiloesPage() {
+export default function StoreLeiloesPage() {
   return (
     <div className="p-6">
-      <LeiloesListClient mode="admin" title="Leilões (Admin)" />
+      <LeiloesListClient mode="user" title="Meus Leilões" />
     </div>
   );
 }
