@@ -58,7 +58,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenProposta
   const [mainImage, setMainImage] = useState<string>(product.images[0] || '/placeholder-product.png');
 
   const addToCartHandler = () => {
-    dispatch(addToCart({ productId }));
+    dispatch(addToCart({ productId, product }));
   };
 
   const averageRating =

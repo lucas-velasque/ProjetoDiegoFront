@@ -12,7 +12,6 @@ export default function Cart() {
   const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$";
 
   const { cartItems } = useSelector((state) => state.cart);
-  const products = useSelector((state) => state.product.list);
 
   const dispatch = useDispatch();
 
@@ -23,13 +22,13 @@ export default function Cart() {
     setTotalPrice(0);
     const cartArray = [];
     for (const [key, value] of Object.entries(cartItems)) {
-      const product = products.find((product) => product.id === key);
-      if (product) {
-        cartArray.push({
-          ...product,
-          quantity: value,
-        });
-        setTotalPrice((prev) => prev + product.price * value);
+      if (value && value.product) {
+        const item = {
+          ...value.product,
+          quantity: value.quantity,
+        };
+        cartArray.push(item);
+        setTotalPrice((prev) => prev + value.product.price * value.quantity);
       }
     }
     setCartArray(cartArray);
@@ -40,10 +39,8 @@ export default function Cart() {
   };
 
   useEffect(() => {
-    if (products.length > 0) {
-      createCartArray();
-    }
-  }, [cartItems, products]);
+    createCartArray();
+  }, [cartItems]);
 
   return cartArray.length > 0 ? (
     <div className="min-h-screen mx-6 text-slate-800">

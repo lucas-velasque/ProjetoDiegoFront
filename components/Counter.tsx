@@ -14,7 +14,11 @@ const Counter: React.FC<CounterProps> = ({ productId }) => {
     const dispatch = useDispatch();
 
     const addToCartHandler = () => {
-        dispatch(addToCart({ productId }))
+        // Pega o produto do cartItems para incrementar
+        const product = cartItems[productId]?.product;
+        if (product) {
+            dispatch(addToCart({ productId, product }))
+        }
     }
 
     const removeFromCartHandler = () => {
@@ -24,7 +28,7 @@ const Counter: React.FC<CounterProps> = ({ productId }) => {
     return (
         <div className="inline-flex items-center gap-1 sm:gap-3 px-3 py-1 rounded border border-slate-200 max-sm:text-sm text-slate-600">
             <button onClick={removeFromCartHandler} className="p-1 select-none">-</button>
-            <p className="p-1">{cartItems[productId]}</p>
+            <p className="p-1">{cartItems[productId]?.quantity || 0}</p>
             <button onClick={addToCartHandler} className="p-1 select-none">+</button>
         </div>
     )
