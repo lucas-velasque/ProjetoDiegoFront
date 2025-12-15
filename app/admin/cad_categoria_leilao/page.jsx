@@ -9,21 +9,6 @@ export default function CreateCategory() {
     status: "",
   });
 
-  const existingCategories = [
-    {
-      name: "Antiguidades",
-      type: "Premium",
-      description: "Itens raros",
-      status: "Ativo",
-    },
-    {
-      name: "Eletrônicos",
-      type: "Padrão",
-      description: "Produtos gerais",
-      status: "Inativo",
-    },
-  ];
-
   const handleChange = (field, value) => {
     setCategory({ ...category, [field]: value });
   };
