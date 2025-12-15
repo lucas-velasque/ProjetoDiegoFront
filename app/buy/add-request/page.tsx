@@ -20,7 +20,6 @@ const EDICOES = [
 ];
 
 const CONDICOES = [
-  'Gem Mint',
   'Mint',
   'Near Mint',
   'Excellent',

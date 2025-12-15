@@ -4,9 +4,12 @@ import { useRouter } from "next/navigation";
 import { createAnuncioVenda } from "@/lib/api/anunciosVenda";
 import toast from "react-hot-toast";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import CardSelector from "./components/CardSelector";
+import { Carta } from "@/types";
 
 interface CartaFormData {
   carta_id: number;
+  cartaData?: Carta;
   quantidade: number;
   condicao: string;
   observacoes: string;
@@ -51,6 +54,16 @@ export default function StoreAddProduct() {
   const handleCartaChange = (index: number, field: keyof CartaFormData, value: any) => {
     const newCartas = [...cartas];
     newCartas[index] = { ...newCartas[index], [field]: value };
+    setCartas(newCartas);
+  };
+
+  const handleCardSelect = (index: number, cartaId: number, carta: Carta) => {
+    const newCartas = [...cartas];
+    newCartas[index] = {
+      ...newCartas[index],
+      carta_id: cartaId,
+      cartaData: carta
+    };
     setCartas(newCartas);
   };
 
@@ -271,23 +284,13 @@ export default function StoreAddProduct() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* ID da Carta (Temporário - será seletor) */}
+                      {/* Card Selector */}
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                          ID da Carta *
-                        </label>
-                        <input
-                          type="number"
-                          value={carta.carta_id || ""}
-                          onChange={(e) => handleCartaChange(index, 'carta_id', Number(e.target.value))}
-                          placeholder="Digite o ID da carta"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                          required
+                        <CardSelector
+                          value={carta.carta_id || null}
+                          onChange={(cartaId, cartaData) => handleCardSelect(index, cartaId, cartaData)}
                           disabled={loading}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Temporário: Em breve será um seletor de cartas
-                        </p>
                       </div>
 
                       {/* Quantidade */}
@@ -319,7 +322,6 @@ export default function StoreAddProduct() {
                           disabled={loading}
                         >
                           <option value="">Selecione</option>
-                          <option value="Gem Mint">Gem Mint</option>
                           <option value="Mint">Mint</option>
                           <option value="Near Mint">Near Mint</option>
                           <option value="Excellent">Excellent</option>
