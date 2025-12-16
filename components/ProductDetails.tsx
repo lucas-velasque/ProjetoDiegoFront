@@ -1,13 +1,11 @@
 "use client";
 
-import { addToCart } from "@/lib/features/cart/cartSlice";
 import { StarIcon, CreditCardIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import Counter from "./Counter";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
+import AddToCartButton from "./AddToCartButton";
 
 interface Rating {
   id: string;
@@ -50,16 +48,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenProposta
   const productId = product.id;
   const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$";
 
-  const cart = useSelector((state: RootState) => state.cart.cartItems);
-  const dispatch = useDispatch();
-
   const router = useRouter();
 
   const [mainImage, setMainImage] = useState<string>(product.images[0] || '/placeholder-product.png');
-
-  const addToCartHandler = () => {
-    dispatch(addToCart({ productId }));
-  };
+  const [quantidade, setQuantidade] = useState<number>(1);
 
   const averageRating =
     product.rating && product.rating.length > 0
@@ -121,21 +113,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onOpenProposta
           </p>
         </div>
         <div className="flex items-end gap-5 mt-10">
-          {cart[productId] && (
-            <div className="flex flex-col gap-3">
-              <p className="text-lg text-slate-800 font-semibold">Quantidade</p>
-              <Counter productId={productId} />
-            </div>
-          )}
+          <div className="flex flex-col gap-3">
+            <p className="text-lg text-slate-800 font-semibold">Quantidade</p>
+            <Counter
+              value={quantidade}
+              onIncrement={() => setQuantidade(quantidade + 1)}
+              onDecrement={() => setQuantidade(Math.max(1, quantidade - 1))}
+              min={1}
+              max={100}
+            />
+          </div>
           <div className="flex gap-3">
-            <button
-              onClick={() =>
-                !cart[productId] ? addToCartHandler() : router.push("/cart")
-              }
-              className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
-            >
-              {!cart[productId] ? "Comprar" : "Ver carrinho"}
-            </button>
+            {/* Nota: Este componente é para produtos mockados. Para anúncios reais, use AddToCartButton */}
+            <AddToCartButton
+              anuncioVendaId={Number(productId)}
+              quantidade={quantidade}
+              className="bg-slate-800 text-white hover:bg-slate-900"
+            />
             {onOpenPropostaModal && (
               <button
                 onClick={onOpenPropostaModal}
