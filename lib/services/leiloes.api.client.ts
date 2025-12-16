@@ -31,7 +31,16 @@ function normalizeLeilao(raw: any): Leilao {
   const precoInicial = Number(raw?.precoInicial ?? raw?.preco_inicial ?? raw?.preco_inicial ?? raw?.valor_inicial ?? raw?.preco ?? 0);
   const precoAtual = Number(raw?.precoAtual ?? raw?.preco_atual ?? raw?.preco_atual ?? raw?.valor_atual ?? precoInicial);
 
-  const status = (raw?.status ?? 'ativo') as LeilaoStatus;
+  // Mapear status do backend para o esperado pelo frontend
+  let status: LeilaoStatus = 'ativo';
+  const rawStatus = raw?.status ?? 'ativo';
+  if (rawStatus === 'aberto' || rawStatus === 'ativo') {
+    status = 'ativo';
+  } else if (rawStatus === 'encerrado' || rawStatus === 'finalizado') {
+    status = 'finalizado';
+  } else if (rawStatus === 'cancelado') {
+    status = 'cancelado';
+  }
 
   const terminaEm = String(
     raw?.terminaEm ??
@@ -111,14 +120,22 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function listLeiloes(params: ListParams): Promise<ListResult> {
   const q = new URLSearchParams();
-  q.set('page', String(params.page));
-  q.set('limit', String(params.limit));
+  q.set('page', String(params.page ?? 1));
+  q.set('limit', String(params.limit ?? 10));
 
-  if (params.q) q.set('q', params.q);
-  if (params.status && params.status !== 'todos') q.set('status', params.status);
+  if (params.q) q.set('titulo', params.q);
+  if (params.status && params.status !== 'todos') {
+    // Mapear status do frontend para o backend
+    let backendStatus = params.status;
+    if (params.status === 'ativo') backendStatus = 'aberto';
+    if (params.status === 'finalizado') backendStatus = 'encerrado';
+    q.set('status', backendStatus);
+  }
 
   // Caso o backend suporte, você pode enviar filtro de "meus leilões".
-  if (params.scope === 'mine' && params.ownerId) q.set('ownerId', params.ownerId);
+  if (params.scope === 'mine' && params.ownerId) {
+    q.set('usuarioId', params.ownerId);
+  }
 
   const json: any = await apiFetch(`/leiloes?${q.toString()}`);
 
@@ -133,10 +150,10 @@ export async function listLeiloes(params: ListParams): Promise<ListResult> {
 
   const total =
     Number(json?.meta?.total ?? json?.total ?? json?.count ?? items.length);
-
-  const page = params.page ?? 1;
-  const limit = params.limit ?? 10;
-  const pages = Math.ceil(total / limit);
+  
+  const page = Number(json?.meta?.page ?? json?.page ?? params.page ?? 1);
+  const limit = Number(json?.meta?.limit ?? json?.limit ?? params.limit ?? 10);
+  const pages = Math.max(1, Math.ceil(total / limit));
 
   return {
     items,
@@ -160,6 +177,8 @@ export type CreateLeilaoInput = {
   precoInicial: number;
   status?: LeilaoStatus;
   terminaEm: string;
+  valor_incremento?: number;
+  vendedorId?: number;
 };
 
 export async function createLeilao(input: CreateLeilaoInput): Promise<Leilao> {
@@ -169,8 +188,10 @@ export async function createLeilao(input: CreateLeilaoInput): Promise<Leilao> {
       titulo: input.titulo,
       descricao: input.descricao ?? '',
       precoInicial: input.precoInicial,
-      status: input.status ?? 'ativo',
+      status: input.status === 'ativo' ? 'aberto' : (input.status ?? 'aberto'),
       terminaEm: input.terminaEm,
+      valor_incremento: input.valor_incremento ?? 1,
+      vendedorId: input.vendedorId ?? 1,
     }),
   });
 

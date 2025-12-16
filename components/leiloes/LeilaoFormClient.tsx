@@ -61,7 +61,7 @@ export default function LeilaoFormClient({ mode, action }: Props) {
         return;
       }
 
-      const editable = canEdit(item, isAdmin ? 'admin' : 'user', userId || '');
+      const editable = canEdit(item, { isAdmin, userId });
       if (!editable) {
         setError('Você não tem permissão para editar este leilão.');
         setLoadingItem(false);
@@ -110,6 +110,8 @@ export default function LeilaoFormClient({ mode, action }: Props) {
           descricao,
           precoInicial: Number(precoInicial),
           terminaEm: toIsoFromLocalDateTime(terminaEm),
+          ownerId: userId,
+          ownerNome: userNome,
         });
       } else {
         if (!id) throw new Error('ID inválido');
@@ -117,6 +119,7 @@ export default function LeilaoFormClient({ mode, action }: Props) {
           titulo,
           descricao,
           precoInicial: Number(precoInicial),
+          precoAtual: Number(precoAtual),
           status,
           terminaEm: toIsoFromLocalDateTime(terminaEm),
         });
@@ -138,7 +141,7 @@ export default function LeilaoFormClient({ mode, action }: Props) {
             {action === 'create' ? 'Criar leilão' : 'Editar leilão'}
           </h1>
           <p className="text-sm text-gray-300">
-            {isAdmin ? 'Admin: pode editar qualquer leilão.' : 'Usuário: pode editar apenas os próprios.'}
+            {isAdmin ? 'Admin: edite os leilões.' : 'Edite aqui seu leilão.'}
           </p>
         </div>
 

@@ -12,31 +12,17 @@ type ListParams = {
   page?: number;
   limit?: number;
   titulo?: string;
+  q?: string;
 };
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+type ListResult = {
+  items: LeilaoUser[];
+  page: number;
+  totalPages: number;
+  total: number;
+};
 
-// Mock local
-let MOCK: LeilaoUser[] = [
-  {
-    id: '1',
-    titulo: 'Charizard 1ª Edição',
-    descricao: 'Carta rara. Estado: Muito boa.',
-    precoInicial: 50,
-    precoAtual: 120,
-    status: 'aberto',
-    terminaEm: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
-  },
-  {
-    id: '2',
-    titulo: 'Pikachu Promo',
-    descricao: 'Carta promocional.',
-    precoInicial: 10,
-    precoAtual: 10,
-    status: 'finalizado',
-    terminaEm: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-];
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 async function parseJsonSafe(res: Response) {
   try {
@@ -53,76 +39,74 @@ function errMsg(payload: any) {
   return 'Erro inesperado.';
 }
 
+function normalizeLeilao(raw: any): LeilaoUser {
+  return {
+    id: String(raw?.id ?? ''),
+    titulo: raw?.titulo ?? '',
+    descricao: raw?.descricao ?? '',
+    precoInicial: Number(raw?.precoInicial ?? 0),
+    precoAtual: Number(raw?.precoAtual ?? raw?.precoInicial ?? 0),
+    status: raw?.status ?? 'aberto',
+    terminaEm: raw?.terminaEm ?? new Date().toISOString(),
+  };
+}
 
-export async function listarMeusLeiloes(params: ListParams = {}): Promise<{ data: LeilaoUser[] } & any> {
-  if (!API_URL) {
-    // filtro local (mock)
-    const titulo = (params.titulo || '').toLowerCase();
-    const filtered = titulo ? MOCK.filter((l) => l.titulo.toLowerCase().includes(titulo)) : MOCK;
-    return { data: filtered } as any;
-  }
-
+export async function listarMeusLeiloes(params: ListParams = {}): Promise<ListResult> {
   const qs = new URLSearchParams();
   if (params.page) qs.set('page', String(params.page));
   if (params.limit) qs.set('limit', String(params.limit));
-  if (params.titulo) qs.set('titulo', params.titulo);
+  if (params.titulo || params.q) qs.set('titulo', params.titulo || params.q || '');
 
-  const res = await fetch(`${API_URL}/leiloes/meus?${qs.toString()}`, {
+  const res = await fetch(`${API_URL}/leiloes?${qs.toString()}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     cache: 'no-store',
   });
 
   const payload = await parseJsonSafe(res);
   if (!res.ok) throw new Error(errMsg(payload));
 
-  // aceite tanto {data:[...]} quanto [...]
-  const data = Array.isArray(payload) ? payload : payload?.data;
-  return { ...(payload || {}), data };
+  // Normalizar resposta do backend
+  const rawItems = Array.isArray(payload) ? payload : (payload?.data ?? payload?.items ?? []);
+  const items = rawItems.map(normalizeLeilao);
+  
+  const total = Number(payload?.meta?.total ?? payload?.total ?? items.length);
+  const page = Number(payload?.meta?.page ?? payload?.page ?? params.page ?? 1);
+  const limit = Number(payload?.meta?.limit ?? payload?.limit ?? params.limit ?? 10);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  return { items, page, totalPages, total };
 }
 
 export async function obterMeuLeilao(id: string): Promise<LeilaoUser> {
   if (!id) throw new Error('ID inválido.');
 
-  if (!API_URL) {
-    const found = MOCK.find((l) => l.id === String(id));
-    if (!found) throw new Error('Leilão não encontrado (mock).');
-    return found;
-  }
-
-  const res = await fetch(`${API_URL}/leiloes/meus/${id}`, {
+  const res = await fetch(`${API_URL}/leiloes/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     cache: 'no-store',
   });
 
   const payload = await parseJsonSafe(res);
   if (!res.ok) throw new Error(errMsg(payload));
-  return (payload?.data ?? payload) as LeilaoUser;
+  
+  const raw = payload?.data ?? payload;
+  return normalizeLeilao(raw);
 }
 
-export async function criarMeuLeilao(input: Partial<LeilaoUser>) {
-  if (!API_URL) {
-    const created: LeilaoUser = {
-      id: String(Date.now()),
-      titulo: String(input.titulo || 'Sem título'),
-      descricao: input.descricao || '',
-      precoInicial: Number(input.precoInicial ?? 0),
-      precoAtual: Number(input.precoInicial ?? 0),
-      status: 'aberto',
-      terminaEm: String(input.terminaEm || new Date().toISOString()),
-    };
-    MOCK = [created, ...MOCK];
-    return { data: created };
-  }
-
+export async function criarMeuLeilao(input: Partial<LeilaoUser> & { valor_incremento?: number; vendedorId?: number }) {
   const res = await fetch(`${API_URL}/leiloes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      titulo: input.titulo,
+      descricao: input.descricao ?? '',
+      precoInicial: input.precoInicial,
+      status: input.status ?? 'aberto',
+      terminaEm: input.terminaEm,
+      valor_incremento: input.valor_incremento ?? 1,
+      vendedorId: input.vendedorId ?? 1,
+    }),
   });
 
   const payload = await parseJsonSafe(res);
@@ -133,15 +117,9 @@ export async function criarMeuLeilao(input: Partial<LeilaoUser>) {
 export async function atualizarMeuLeilao(id: string, input: Partial<LeilaoUser>) {
   if (!id) throw new Error('ID inválido.');
 
-  if (!API_URL) {
-    MOCK = MOCK.map((l) => (l.id === String(id) ? { ...l, ...input } as LeilaoUser : l));
-    return { ok: true };
-  }
-
   const res = await fetch(`${API_URL}/leiloes/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(input),
   });
 
@@ -153,15 +131,9 @@ export async function atualizarMeuLeilao(id: string, input: Partial<LeilaoUser>)
 export async function excluirMeuLeilao(id: string) {
   if (!id) throw new Error('ID inválido.');
 
-  if (!API_URL) {
-    MOCK = MOCK.filter((l) => l.id !== String(id));
-    return { ok: true };
-  }
-
   const res = await fetch(`${API_URL}/leiloes/${id}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
   });
 
   const payload = await parseJsonSafe(res);

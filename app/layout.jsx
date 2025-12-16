@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
+import UserSync from "@/components/UserSync";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"] });
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
       <html lang="pt-BR">
         <body className={`${outfit.className} antialiased`}>
           <StoreProvider>
+            <UserSync />
             <Toaster />
             {children}
           </StoreProvider>

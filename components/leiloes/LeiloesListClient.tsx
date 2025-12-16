@@ -95,6 +95,7 @@ export default function LeiloesListClient({ mode, title }: Props) {
 
   async function onToggleStatus(l: Leilao) {
     const next = l.status === 'ativo' ? 'cancelado' : 'ativo';
+    if (!confirm(`Tem certeza que deseja alterar o status para ${next}?`)) return;
     await updateLeilao(l.id, { status: next });
     await load();
   }
@@ -204,7 +205,7 @@ export default function LeiloesListClient({ mode, title }: Props) {
                 </tr>
               ) : (
                 items.map((l) => {
-                  const editable = canEdit(l, isAdmin ? 'admin' : 'user', userId || '');
+                  const editable = canEdit(l, { isAdmin, userId });
                   return (
                     <tr key={l.id} className="border-t border-white/10">
                       <td className="px-4 py-3">
@@ -212,7 +213,7 @@ export default function LeiloesListClient({ mode, title }: Props) {
                           <button
                             onClick={() => onToggleStatus(l)}
                             className="px-2 py-1 rounded bg-white/10 hover:bg-white/15"
-                            title="Alternar status (ação mock)"
+                            title="Alternar status"
                           >
                             Alternar
                           </button>
