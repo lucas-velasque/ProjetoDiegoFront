@@ -30,12 +30,12 @@ export const anuncioService = {
 
   createAnuncio: async (data: CreateAnuncioVendaDto) => {
     // Validações de negócio
-    if (data.preco <= 0) {
+    if (data.preco_total <= 0) {
       toast.error('Preço deve ser maior que zero');
       throw new Error('Preço inválido');
     }
 
-    if (data.quantidade <= 0) {
+    if (data.quantidade_disponivel <= 0) {
       toast.error('Quantidade deve ser maior que zero');
       throw new Error('Quantidade inválida');
     }
@@ -52,12 +52,12 @@ export const anuncioService = {
 
   updateAnuncio: async (id: number, data: UpdateAnuncioVendaDto) => {
     // Validações de negócio
-    if (data.preco !== undefined && data.preco <= 0) {
+    if (data.preco_total !== undefined && data.preco_total <= 0) {
       toast.error('Preço deve ser maior que zero');
       throw new Error('Preço inválido');
     }
 
-    if (data.quantidade !== undefined && data.quantidade <= 0) {
+    if (data.quantidade_disponivel !== undefined && data.quantidade_disponivel <= 0) {
       toast.error('Quantidade deve ser maior que zero');
       throw new Error('Quantidade inválida');
     }

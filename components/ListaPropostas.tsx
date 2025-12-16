@@ -191,7 +191,7 @@ const ListaPropostas: React.FC<ListaPropostasProps> = ({ productId, tipo = "vend
                 <div className="mt-3">
                   <p className="text-2xl font-bold text-slate-800 mb-2">
                     {currency}
-                    {parseFloat(proposta.valor_proposto.toString()).toFixed(2)}
+                    {parseFloat(proposta.valor_oferta.toString()).toFixed(2)}
                   </p>
                   {proposta.mensagem && (
                     <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">

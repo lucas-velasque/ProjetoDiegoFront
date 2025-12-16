@@ -41,8 +41,8 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      await createProposta("venda", productId, {
-        valor_proposto: parseFloat(valorProposto),
+      await createProposta("venda", Number(productId), {
+        valor_oferta: parseFloat(valorProposto),
         mensagem: mensagem.trim() || undefined,
       });
 

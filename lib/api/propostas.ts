@@ -81,9 +81,9 @@ export const getPropostasByAnuncio = async (
 export const createProposta = async (
   tipo: 'venda' | 'compra',
   anuncioId: number,
-  data: CreatePropostaDto
+  data: Omit<CreatePropostaDto, 'anuncio_id' | 'usuario_id'>
 ) => {
-  return await propostasApi.create({ ...data, anuncio_id: anuncioId });
+  return await propostasApi.create({ ...data, anuncio_id: anuncioId } as CreatePropostaDto);
 };
 
 export const acceptProposta = propostasApi.accept;

@@ -36,8 +36,8 @@ export default function UserLevels() {
         limit: itemsPerPage,
       });
 
-      setLevels(response.items);
-      setTotalPages(response.totalPages || 1);
+      setLevels(response);
+      setTotalPages(1);
     } catch (error) {
       console.error(error);
     } finally {

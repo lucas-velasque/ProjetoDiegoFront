@@ -44,6 +44,7 @@ export default function Cart() {
       <div className="max-w-7xl mx-auto">
         <PageTitle
           heading="Carrinho"
+          text="Revise seus itens antes de finalizar a compra"
           linkText="Adicionar mais produtos"
           linkHref="/shop"
         />

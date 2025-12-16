@@ -25,8 +25,8 @@ export const useCategoriasCartas = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await categoriaCartaService.getAll();
-      setCategorias(data);
+      const response = await categoriaCartaService.getAll();
+      setCategorias(response.data);
     } catch (err) {
       setError('Erro ao carregar categorias');
     } finally {
@@ -88,8 +88,8 @@ export const useCategoriasLeilao = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await categoriaLeilaoService.getAll();
-      setCategorias(data);
+      const response = await categoriaLeilaoService.getAll();
+      setCategorias(Array.isArray(response) ? response : response.data);
     } catch (err) {
       setError('Erro ao carregar categorias');
     } finally {

@@ -114,11 +114,11 @@ export async function listLeiloes(params: ListParams): Promise<ListResult> {
   q.set('page', String(params.page));
   q.set('limit', String(params.limit));
 
-  if (params.query) q.set('q', params.query);
+  if (params.q) q.set('q', params.q);
   if (params.status && params.status !== 'todos') q.set('status', params.status);
 
   // Caso o backend suporte, você pode enviar filtro de "meus leilões".
-  if (!params.isAdmin && params.userId) q.set('ownerId', params.userId);
+  if (params.scope === 'mine' && params.ownerId) q.set('ownerId', params.ownerId);
 
   const json: any = await apiFetch(`/leiloes?${q.toString()}`);
 
@@ -134,9 +134,16 @@ export async function listLeiloes(params: ListParams): Promise<ListResult> {
   const total =
     Number(json?.meta?.total ?? json?.total ?? json?.count ?? items.length);
 
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 10;
+  const pages = Math.ceil(total / limit);
+
   return {
     items,
     total,
+    page,
+    limit,
+    pages,
   };
 }
 

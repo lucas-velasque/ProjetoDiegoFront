@@ -15,7 +15,7 @@ const Navbar = () => {
   const router = useRouter();
 
   const [search, setSearch] = useState("");
-  const cartCount = useSelector((state: RootState) => state.cart.total);
+  const cartCount = useSelector((state: RootState) => state.cart.totalItens);
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

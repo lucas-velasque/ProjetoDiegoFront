@@ -13,15 +13,15 @@ export default function CreateLevel() {
     id_cor: "",
   });
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field, value) => {
     setLevel({ ...level, [field]: value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     for (const key in level) {
-      if (!level[key as keyof typeof level].toString().trim()) {
+      if (!level[key].toString().trim()) {
         toast.error(`Por favor, preencha o campo ${key}`);
         return;
       }
@@ -45,7 +45,7 @@ export default function CreateLevel() {
         pontuacaoMinima: "",
         id_cor: "",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao criar nível:", error);
       toast.error(error?.response?.data?.message || "Erro ao criar nível");
     }

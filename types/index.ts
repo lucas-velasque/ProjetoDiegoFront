@@ -82,7 +82,7 @@ export interface UpdateNivelUsuarioDto {
   pontuacaoMinima?: number;
   corIdentificacao?: string;
   id_cor?: number;
-
+}
 
 // ==================== CARTA ====================
 export interface Carta {

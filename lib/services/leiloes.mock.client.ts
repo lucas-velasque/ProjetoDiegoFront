@@ -70,10 +70,9 @@ function bootstrapMineIfEmpty(all: LeilaoMock[], ownerId: string, ownerNome?: st
       precoAtual: 14.25,
       status: 'ativo',
       terminaEm: new Date(now + 1000 * 60 * 60 * 24 * 2).toISOString(),
+      criadoEm: new Date(now - 1000 * 60 * 60).toISOString(),
       ownerId,
       ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 60).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 30).toISOString(),
     },
     {
       id: genId(),
@@ -83,10 +82,9 @@ function bootstrapMineIfEmpty(all: LeilaoMock[], ownerId: string, ownerNome?: st
       precoAtual: 5.0,
       status: 'ativo',
       terminaEm: new Date(now + 1000 * 60 * 60 * 12).toISOString(),
+      criadoEm: new Date(now - 1000 * 60 * 20).toISOString(),
       ownerId,
       ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 20).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 20).toISOString(),
     },
     {
       id: genId(),
@@ -96,10 +94,9 @@ function bootstrapMineIfEmpty(all: LeilaoMock[], ownerId: string, ownerNome?: st
       precoAtual: 7.9,
       status: 'finalizado',
       terminaEm: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
+      criadoEm: new Date(now - 1000 * 60 * 60 * 24 * 7).toISOString(),
       ownerId,
       ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 7).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
     },
   ];
 

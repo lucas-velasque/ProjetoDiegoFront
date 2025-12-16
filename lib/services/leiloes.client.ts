@@ -37,8 +37,12 @@ export async function getLeilaoById(id: string): Promise<Leilao | null> {
 export async function createLeilao(input: api.CreateLeilaoInput): Promise<Leilao> {
   const apiResult = await tryApi(() => api.createLeilao(input));
   if (apiResult) return apiResult;
-  // mock espera campos camelCase iguais
-  return mock.createLeilao(input);
+  // mock espera campos camelCase iguais + ownerId/ownerNome
+  return mock.createLeilao({
+    ...input,
+    ownerId: 'mock-user-id',
+    ownerNome: 'Mock User'
+  });
 }
 
 export async function updateLeilao(id: string, patch: Partial<api.CreateLeilaoInput>): Promise<Leilao> {
@@ -56,6 +60,6 @@ export async function deleteLeilao(id: string): Promise<void> {
 
 // Regra de permissões no front (independente da fonte dos dados)
 export function canEdit(leilao: Leilao, viewerRole: 'admin' | 'user', viewerUserId: string): boolean {
-  return mock.canEdit(leilao, viewerRole, viewerUserId);
+  return mock.canEdit(leilao, { isAdmin: viewerRole === 'admin', userId: viewerUserId });
 }
 
