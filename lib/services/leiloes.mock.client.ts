@@ -1,248 +1,208 @@
-// Diego, criei alguns mocks aqui para popular a tela de leilão, mas consegue popular o banco de dados sem mocks. Me ajuda a passar, não quero fazer a matéria de novo. Please. Se eu passar pela P2 viro botafoguense por 1 dia.
-'use client';
+import type { ListLeiloesParams } from './leiloes.client';
+import { setLeilaoMeta, deleteLeilaoMeta, getLeilaoMeta } from './leiloes.meta';
 
-import type { LeilaoMock, LeilaoStatus } from '@/lib/mocks/leiloes.mock';
-import { MOCK_STORAGE_KEY, seedLeiloes } from '@/lib/mocks/leiloes.mock';
+export type LeilaoStatus = 'ativo' | 'inativo' | 'cancelado' | 'aberto' | 'encerrado' | string;
 
-export type ListParams = {
-  q?: string;
-  status?: LeilaoStatus | 'todos';
-  terminaDe?: string; // yyyy-mm-dd
-  terminaAte?: string; 
-  page?: number;
-  limit?: number;
-  scope?: 'all' | 'mine';
-  ownerId?: string;
-  ownerNome?: string;
-};
-
-export type ListResult = {
-  items: LeilaoMock[];
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-};
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try { return JSON.parse(raw) as T; } catch { return null; }
-}
-
-function ensureSeed(): LeilaoMock[] {
-  const existing = safeParse<LeilaoMock[]>(
-    typeof window !== 'undefined' ? window.localStorage.getItem(MOCK_STORAGE_KEY) : null
-  );
-  if (existing && Array.isArray(existing) && existing.length > 0) return existing;
-
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(seedLeiloes));
-  }
-  return seedLeiloes;
-}
-
-function writeAll(data: LeilaoMock[]) {
-  window.localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(data));
-}
-
-function genId(prefix = 'l_') {
-  const anyCrypto = (globalThis as any).crypto;
-  if (anyCrypto?.randomUUID) return prefix + anyCrypto.randomUUID();
-  return prefix + Math.floor(Math.random() * 900000 + 100000).toString();
-}
-
-function bootstrapMineIfEmpty(all: LeilaoMock[], ownerId: string, ownerNome?: string) {
-  const hasAny = all.some(l => l.ownerId === ownerId);
-  if (hasAny) return all;
-
-  const nome = (ownerNome?.trim() || 'Você').slice(0, 80);
-  const now = Date.now();
-
-
-  const samples: LeilaoMock[] = [
-    {
-      id: genId(),
-      titulo: 'Charizard - 1ª Edição',
-      descricao: 'Exemplo de leilão criado automaticamente para testes de UI (usuário).',
-      precoInicial: 10.0,
-      precoAtual: 14.25,
-      status: 'ativo',
-      terminaEm: new Date(now + 1000 * 60 * 60 * 24 * 2).toISOString(),
-      ownerId,
-      ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 60).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 30).toISOString(),
-    },
-    {
-      id: genId(),
-      titulo: 'Pikachu - Holo',
-      descricao: 'Teste.',
-      precoInicial: 5.0,
-      precoAtual: 5.0,
-      status: 'ativo',
-      terminaEm: new Date(now + 1000 * 60 * 60 * 12).toISOString(),
-      ownerId,
-      ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 20).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 20).toISOString(),
-    },
-    {
-      id: genId(),
-      titulo: 'Eevee - Near Mint',
-      descricao: 'Um exemplo finalizado para testar filtro de status.',
-      precoInicial: 3.0,
-      precoAtual: 7.9,
-      status: 'finalizado',
-      terminaEm: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
-      ownerId,
-      ownerNome: nome,
-      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 7).toISOString(),
-      updatedAt: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
-    },
-  ];
-
-  const next = [...all, ...samples];
-  writeAll(next);
-  return next;
-}
-
-function toMoney(n: unknown): number {
-  const v = Number(n);
-  return Number.isFinite(v) ? v : 0;
-}
-
-function normalizeDateInput(d?: string): number | null {
-  if (!d) return null;
-  const dt = new Date(d);
-  const t = dt.getTime();
-  return Number.isFinite(t) ? t : null;
-}
-
-export function canEdit(leilao: LeilaoMock, opts: { isAdmin: boolean; userId?: string }) {
-  if (opts.isAdmin) return true;
-  if (!opts.userId) return false;
-  return leilao.ownerId === opts.userId;
-}
-
-export async function listLeiloes(params: ListParams): Promise<ListResult> {
-  let all = ensureSeed();
-
-  const q = (params.q ?? '').trim().toLowerCase();
-  const status = params.status ?? 'todos';
-  const scope = params.scope ?? 'all';
-  const ownerId = params.ownerId;
-
-  // Se o usuário nunca teve dados mockados, criamos alguns exemplos automaticamente
-  // para a tela "Meus Leilões" não ficar vazia.
-  if (scope === 'mine' && ownerId) {
-    all = bootstrapMineIfEmpty(all, ownerId, params.ownerNome);
-  }
-
-  let filtered = [...all];
-
-  if (scope === 'mine' && ownerId) {
-    filtered = filtered.filter(l => l.ownerId === ownerId);
-  }
-
-  if (q) {
-    filtered = filtered.filter(l =>
-      l.titulo.toLowerCase().includes(q) ||
-      (l.descricao ?? '').toLowerCase().includes(q) ||
-      l.ownerNome.toLowerCase().includes(q)
-    );
-  }
-
-  if (status !== 'todos') {
-    filtered = filtered.filter(l => l.status === status);
-  }
-
-  const de = normalizeDateInput(params.terminaDe);
-  const ate = normalizeDateInput(params.terminaAte);
-  if (de != null) {
-    filtered = filtered.filter(l => new Date(l.terminaEm).getTime() >= de);
-  }
-  if (ate != null) {
-    const end = ate + (1000 * 60 * 60 * 24 - 1);
-    filtered = filtered.filter(l => new Date(l.terminaEm).getTime() <= end);
-  }
-
-  filtered.sort((a, b) => new Date(a.terminaEm).getTime() - new Date(b.terminaEm).getTime());
-
-  const page = Math.max(1, Number(params.page ?? 1));
-  const limit = Math.min(50, Math.max(5, Number(params.limit ?? 10)));
-  const total = filtered.length;
-  const pages = Math.max(1, Math.ceil(total / limit));
-  const start = (page - 1) * limit;
-  const items = filtered.slice(start, start + limit);
-
-  return { items, total, page, limit, pages };
-}
-
-export async function getLeilaoById(id: string): Promise<LeilaoMock | null> {
-  const all = ensureSeed();
-  return all.find(l => l.id === id) ?? null;
-}
-
-export async function createLeilao(input: {
+export type Leilao = {
+  id: string;
+  status: LeilaoStatus;
   titulo: string;
   descricao?: string;
   precoInicial: number;
-  terminaEm: string; // ISO
-  ownerId: string;
-  ownerNome: string;
-}): Promise<LeilaoMock> {
-  const all = ensureSeed();
+  precoAtual: number;
+  valor_incremento: number;
+  terminaEm: string;
+  ativo: boolean;
+  ownerId?: string;
+  ownerNome?: string;
+  createdAt: string;
+  updatedAt: string;
+  raridade?: string;
+  estadoCarta?: string;
+};
 
-  const id = 'l_' + Math.floor(Math.random() * 900000 + 100000).toString();
-  const precoInicial = Math.max(0.01, toMoney(input.precoInicial));
-  const nowIso = new Date().toISOString();
+export type ListLeiloesResult = {
+  items: Leilao[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
-  const created: LeilaoMock = {
-    id,
-    titulo: input.titulo.trim(),
-    descricao: input.descricao?.trim() || '',
-    precoInicial,
-    precoAtual: precoInicial,
-    status: 'ativo',
+const LS_KEY = 'poketrade_leiloes_mock_v1';
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function seed(ownerId?: string, ownerNome?: string): Leilao[] {
+  const base: Leilao[] = [
+    {
+      id: 'mock-1',
+      status: 'ativo',
+      titulo: 'Charizard (mock) - 1ª Edição',
+      descricao: 'Seu leilão',
+      precoInicial: 10,
+      precoAtual: 14.25,
+      valor_incremento: 1,
+      terminaEm: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(),
+      ativo: true,
+      ownerId,
+      ownerNome,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      raridade: 'Rara',
+      estadoCarta: 'Seminova',
+    },
+    {
+      id: 'mock-2',
+      status: 'ativo',
+      titulo: 'Eevee - Near Mint',
+      descricao: 'Seu leilão',
+      precoInicial: 3,
+      precoAtual: 7.9,
+      valor_incremento: 1,
+      terminaEm: new Date(Date.now() + 1000 * 60 * 60 * 24 * 9).toISOString(),
+      ativo: true,
+      ownerId,
+      ownerNome,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      raridade: 'Comum',
+      estadoCarta: 'Nova',
+    },
+  ];
+  return base;
+}
+
+function load(ownerId?: string, ownerNome?: string): Leilao[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(LS_KEY);
+    if (!raw) {
+      const s = seed(ownerId, ownerNome);
+      window.localStorage.setItem(LS_KEY, JSON.stringify(s));
+      // persist meta
+      for (const l of s) setLeilaoMeta(l.id, { raridade: l.raridade, estadoCarta: l.estadoCarta });
+      return s;
+    }
+    const list = JSON.parse(raw) as Leilao[];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+function save(list: Leilao[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(LS_KEY, JSON.stringify(list));
+}
+
+function contains(hay: string, q: string) {
+  return hay.toLowerCase().includes(q.toLowerCase());
+}
+
+export async function listLeiloes(params: ListLeiloesParams): Promise<ListLeiloesResult> {
+  const page = Math.max(1, Number(params.page ?? 1));
+  const limit = Math.max(1, Math.min(100, Number(params.limit ?? 10)));
+
+  let items = load(params.ownerId, params.ownerId ? params.ownerId : params.ownerId);
+
+  // scope mine
+  if (params.scope === 'mine' && params.ownerId) {
+    items = items.filter((l) => l.ownerId === params.ownerId);
+  }
+
+  // enrich meta if missing
+  items = items.map((l) => {
+    const meta = getLeilaoMeta(l.id);
+    return { ...l, raridade: l.raridade ?? meta?.raridade, estadoCarta: l.estadoCarta ?? meta?.estadoCarta };
+  });
+
+  if (params.q) {
+    const q = params.q.trim();
+    if (q) items = items.filter((l) => contains(l.titulo + ' ' + (l.descricao ?? ''), q));
+  }
+  if (params.status && params.status !== 'todos') {
+    items = items.filter((l) => String(l.status).toLowerCase() === String(params.status).toLowerCase());
+  }
+  if (params.raridade && params.raridade !== 'todos') {
+    items = items.filter((l) => String(l.raridade ?? '').toLowerCase() === String(params.raridade).toLowerCase());
+  }
+  if (params.estadoCarta && params.estadoCarta !== 'todos') {
+    items = items.filter((l) => String(l.estadoCarta ?? '').toLowerCase() === String(params.estadoCarta).toLowerCase());
+  }
+
+  // date range on terminaEm
+  if (params.dateFrom) {
+    const f = new Date(params.dateFrom).getTime();
+    if (Number.isFinite(f)) items = items.filter((l) => new Date(l.terminaEm).getTime() >= f);
+  }
+  if (params.dateTo) {
+    const t = new Date(params.dateTo).getTime();
+    if (Number.isFinite(t)) items = items.filter((l) => new Date(l.terminaEm).getTime() <= t);
+  }
+
+  items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const total = items.length;
+  const start = (page - 1) * limit;
+  const pageItems = items.slice(start, start + limit);
+
+  return { items: pageItems, total, page, limit };
+}
+
+export async function getLeilao(id: string): Promise<Leilao> {
+  const items = load();
+  const found = items.find((l) => l.id === id);
+  if (!found) throw new Error('Leilão não encontrado.');
+  const meta = getLeilaoMeta(found.id);
+  return { ...found, raridade: found.raridade ?? meta?.raridade, estadoCarta: found.estadoCarta ?? meta?.estadoCarta };
+}
+
+export async function createLeilao(input: any): Promise<Leilao> {
+  const items = load(input.ownerId, input.ownerNome);
+  const created: Leilao = {
+    id: `mock-${Math.random().toString(16).slice(2)}`,
+    status: input.status ?? 'ativo',
+    titulo: input.titulo,
+    descricao: input.descricao ?? '',
+    precoInicial: Number(input.precoInicial ?? 0),
+    precoAtual: Number(input.precoInicial ?? 0),
+    valor_incremento: Number(input.valor_incremento ?? 1),
     terminaEm: input.terminaEm,
-    criadoEm: nowIso,
+    ativo: true,
     ownerId: input.ownerId,
-    ownerNome: input.ownerNome || 'Usuário',
+    ownerNome: input.ownerNome,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    raridade: input.raridade,
+    estadoCarta: input.estadoCarta,
   };
-
-  const next = [created, ...all];
-  writeAll(next);
+  items.unshift(created);
+  save(items);
+  if (created.id) setLeilaoMeta(created.id, { raridade: created.raridade, estadoCarta: created.estadoCarta });
   return created;
 }
 
-export async function updateLeilao(
-  id: string,
-  patch: Partial<Pick<LeilaoMock,'titulo'|'descricao'|'precoInicial'|'precoAtual'|'status'|'terminaEm'>>
-): Promise<LeilaoMock> {
-  const all = ensureSeed();
-  const idx = all.findIndex(l => l.id === id);
-  if (idx < 0) throw new Error('Leilão não encontrado');
-
-  const current = all[idx];
-  const next: LeilaoMock = {
-    ...current,
-    ...patch,
-    titulo: (patch.titulo ?? current.titulo).trim(),
-    descricao: (patch.descricao ?? current.descricao ?? '').trim(),
-    precoInicial: patch.precoInicial != null ? Math.max(0.01, toMoney(patch.precoInicial)) : current.precoInicial,
-    precoAtual: patch.precoAtual != null ? Math.max(0, toMoney(patch.precoAtual)) : current.precoAtual,
-    status: (patch.status ?? current.status),
-    terminaEm: (patch.terminaEm ?? current.terminaEm),
-  };
-
-  const copy = [...all];
-  copy[idx] = next;
-  writeAll(copy);
-  return next;
+export async function updateLeilao(id: string, patch: any): Promise<Leilao> {
+  const items = load();
+  const idx = items.findIndex((l) => l.id === id);
+  if (idx === -1) throw new Error('Leilão não encontrado.');
+  const updated = { ...items[idx], ...patch, updatedAt: nowIso() } as Leilao;
+  items[idx] = updated;
+  save(items);
+  if (updated.id) setLeilaoMeta(updated.id, { raridade: updated.raridade, estadoCarta: updated.estadoCarta });
+  return updated;
 }
 
 export async function deleteLeilao(id: string): Promise<void> {
-  const all = ensureSeed();
-  const next = all.filter(l => l.id !== id);
-  writeAll(next);
+  const items = load();
+  const next = items.filter((l) => l.id !== id);
+  save(next);
+  deleteLeilaoMeta(id);
+}
+
+export async function toggleAtivo(id: string): Promise<Leilao> {
+  const current = await getLeilao(id);
+  return updateLeilao(id, { ativo: !current.ativo });
 }

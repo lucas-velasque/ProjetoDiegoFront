@@ -1,61 +1,75 @@
-'use client';
+import * as api from './leiloes.api.client';
+import * as mock from './leiloes.mock.client';
 
-import type { LeilaoMock, LeilaoStatus } from '@/lib/mocks/leiloes.mock';
-import type { ListParams, ListResult } from '@/lib/services/leiloes.mock.client';
+const USE_MOCK_KEY = 'poketrade_use_mock_leiloes_v1';
 
-import * as mock from '@/lib/services/leiloes.mock.client';
-import * as api from '@/lib/services/leiloes.api.client';
-
-export type Leilao = LeilaoMock;
-export type { LeilaoStatus, ListParams, ListResult };
-
-function source(): 'api' | 'mock' {
-  const v = (process.env.NEXT_PUBLIC_LEILOES_SOURCE || '').toLowerCase();
-  return v === 'api' ? 'api' : 'mock';
-}
-
-async function tryApi<T>(fn: () => Promise<T>): Promise<T | null> {
-  if (source() !== 'api') return null;
-  try {
-    return await fn();
-  } catch {
-    return null;
+export function getUseMockLeiloes(): boolean {
+  if (typeof window === 'undefined') return false;
+  const stored = window.localStorage.getItem(USE_MOCK_KEY);
+  if (stored === null) {
+    // Default: API (real backend)
+    const envDefault = (process.env.NEXT_PUBLIC_USE_MOCK_LEILOES || '').toLowerCase() === 'true';
+    return envDefault;
   }
+  return stored === 'true';
 }
 
-// Lista com fallback: se API falhar (401/500/offline), volta para o mock.
-export async function listLeiloes(params: ListParams): Promise<ListResult> {
-  const apiResult = await tryApi(() => api.listLeiloes(params));
-  return apiResult ?? mock.listLeiloes(params);
+export function setUseMockLeiloes(v: boolean): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(USE_MOCK_KEY, v ? 'true' : 'false');
 }
 
-export async function getLeilaoById(id: string): Promise<Leilao | null> {
-  const apiResult = await tryApi(() => api.getLeilaoById(id));
-  return apiResult ?? mock.getLeilaoById(id);
+export type LeilaoStatus = api.LeilaoStatus;
+export type Leilao = api.Leilao;
+
+export type ListLeiloesParams = {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  scope?: 'all' | 'mine';
+  ownerId?: string;      // Clerk userId (used by mock)
+  ownerDbId?: number;    // users.id no Postgres (used by API filter)
+  raridade?: string;
+  estadoCarta?: string;
+};
+
+export type ListLeiloesResult = api.ListLeiloesResult;
+
+export async function listLeiloes(params: ListLeiloesParams): Promise<ListLeiloesResult> {
+  return getUseMockLeiloes() ? mock.listLeiloes(params as any) : api.listLeiloes(params as any);
 }
 
-export async function createLeilao(input: api.CreateLeilaoInput): Promise<Leilao> {
-  const apiResult = await tryApi(() => api.createLeilao(input));
-  if (apiResult) return apiResult;
-  // mock espera campos camelCase iguais
-  return mock.createLeilao(input);
+export async function getLeilao(id: string): Promise<Leilao> {
+  return getUseMockLeiloes() ? mock.getLeilao(id) : api.getLeilao(id);
 }
 
-export async function updateLeilao(id: string, patch: Partial<api.CreateLeilaoInput>): Promise<Leilao> {
-  const apiResult = await tryApi(() => api.updateLeilao(id, patch));
-  return apiResult ?? mock.updateLeilao(id, patch);
+export type CreateLeilaoInput = api.CreateLeilaoInput & {
+  ownerId?: string;
+  ownerNome?: string;
+  raridade?: string;
+  estadoCarta?: string;
+};
+
+function stripApiOnly(input: CreateLeilaoInput): api.CreateLeilaoInput {
+  const { ownerId, ownerNome, raridade, estadoCarta, ...rest } = input;
+  return rest;
+}
+
+export async function createLeilao(input: CreateLeilaoInput): Promise<Leilao> {
+  return getUseMockLeiloes() ? mock.createLeilao(input as any) : api.createLeilao(stripApiOnly(input));
+}
+
+export async function updateLeilao(id: string, patch: Partial<CreateLeilaoInput>): Promise<Leilao> {
+  return getUseMockLeiloes() ? mock.updateLeilao(id, patch as any) : api.updateLeilao(id, stripApiOnly(patch as any));
 }
 
 export async function deleteLeilao(id: string): Promise<void> {
-  const apiResult = await tryApi(async () => {
-    await api.deleteLeilao(id);
-  });
-  if (apiResult !== null) return;
-  return mock.deleteLeilao(id);
+  return getUseMockLeiloes() ? mock.deleteLeilao(id) : api.deleteLeilao(id);
 }
 
-// Regra de permissões no front (independente da fonte dos dados)
-export function canEdit(leilao: Leilao, viewerRole: 'admin' | 'user', viewerUserId: string): boolean {
-  return mock.canEdit(leilao, viewerRole, viewerUserId);
+export async function toggleAtivo(id: string): Promise<Leilao> {
+  return getUseMockLeiloes() ? mock.toggleAtivo(id) : api.toggleAtivo(id);
 }
-

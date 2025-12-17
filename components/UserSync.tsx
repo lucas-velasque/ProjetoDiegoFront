@@ -26,6 +26,13 @@ export default function UserSync() {
           if (response.ok) {
             const data = await response.json();
             console.log('Usuário sincronizado:', data);
+            // Salva o ID do usuário no banco (users.id) para filtrar "Meus leilões" no front.
+            try {
+              const id = data?.user?.id ?? data?.id;
+              if (typeof window !== 'undefined' && id) {
+                window.localStorage.setItem('backend_user_id', String(id));
+              }
+            } catch {}
           } else {
             const error = await response.json().catch(() => ({}));
             console.error('Erro ao sincronizar usuário:', error);

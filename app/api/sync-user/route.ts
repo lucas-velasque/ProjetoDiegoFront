@@ -1,26 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const user = await currentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Usuário não autenticado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 });
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-    // Preparar dados do usuário
+    // Preparar dados do usuário (NÃO enviar senha vazia)
     const userData = {
       clerk_id: user.id,
       email: user.emailAddresses[0]?.emailAddress || `${user.id}@clerk.user`,
       nome: [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Usuário',
-      username: user.username || user.emailAddresses[0]?.emailAddress?.split('@')[0] || user.id,
-      senha: '', // Clerk gerencia a senha
+      username:
+        user.username ||
+        user.emailAddresses[0]?.emailAddress?.split('@')[0] ||
+        user.id,
       status: 'ativo',
     };
 
@@ -29,9 +28,7 @@ export async function POST(request: NextRequest) {
     // Tentar criar o usuário no backend
     const response = await fetch(`${apiUrl}/users`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
     });
 

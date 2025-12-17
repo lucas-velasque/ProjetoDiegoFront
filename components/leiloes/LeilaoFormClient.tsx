@@ -1,261 +1,227 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
+import toast from 'react-hot-toast';
 
-import type { LeilaoStatus } from '@/lib/services/leiloes.client';
-import { canEdit, createLeilao, getLeilaoById, updateLeilao } from '@/lib/services/leiloes.client';
+import { createLeilao, updateLeilao } from '@/lib/services/leiloes.client';
+import { setLeilaoMeta } from '@/lib/services/leiloes.meta';
 
 type Props = {
-  mode: 'admin' | 'user';
-  action: 'create' | 'edit';
+  mode: 'create' | 'edit';
+  leilaoId?: string;
+  initial?: {
+    titulo?: string;
+    descricao?: string;
+    precoInicial?: number;
+    terminaEm?: string;
+    status?: string;
+    raridade?: string;
+    estadoCarta?: string;
+  };
 };
 
-function toIsoFromLocalDateTime(v: string) {
+const RARIDADES = ['Comum', 'Incomum', 'Rara', 'Ultra Rara', 'Secreta'];
+const ESTADOS = ['Nova', 'Seminova', 'Usada', 'Danificada'];
+
+function toInputDatetimeLocal(iso?: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  // yyyy-MM-ddThh:mm
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromInputDatetimeLocal(v: string) {
+  // treat as local time
   const d = new Date(v);
   return d.toISOString();
 }
 
-function toInputDateTime(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function getBackendUserId(): number | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const raw = window.localStorage.getItem('backend_user_id');
+  const n = raw ? Number(raw) : NaN;
+  return Number.isFinite(n) ? n : undefined;
 }
 
-export default function LeilaoFormClient({ mode, action }: Props) {
+export default function LeilaoFormClient({ mode, leilaoId, initial }: Props) {
   const router = useRouter();
-  const params = useParams<{ id?: string }>();
   const { user } = useUser();
 
-  const isAdmin = mode === 'admin';
-  const userId = user?.id ?? 'user_1';
-  const userNome = user?.fullName ?? user?.username ?? 'Zezinho';
+  const [titulo, setTitulo] = useState(initial?.titulo ?? '');
+  const [descricao, setDescricao] = useState(initial?.descricao ?? '');
+  const [precoInicial, setPrecoInicial] = useState(String(initial?.precoInicial ?? ''));
+  const [terminaEm, setTerminaEm] = useState(toInputDatetimeLocal(initial?.terminaEm) || '');
+  const [raridade, setRaridade] = useState(initial?.raridade ?? '');
+  const [estadoCarta, setEstadoCarta] = useState(initial?.estadoCarta ?? '');
 
-  const id = (params?.id as string | undefined) ?? undefined;
-
-  const [loading, setLoading] = useState(false);
-  const [loadingItem, setLoadingItem] = useState(action === 'edit');
-  const [error, setError] = useState<string | null>(null);
-
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [precoInicial, setPrecoInicial] = useState('0.01');
-  const [precoAtual, setPrecoAtual] = useState('0.01');
-  const [status, setStatus] = useState<LeilaoStatus>('ativo');
-  const [terminaEm, setTerminaEm] = useState(
-    toInputDateTime(new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString())
-  );
-
-  useEffect(() => {
-    async function load() {
-      if (action !== 'edit' || !id) return;
-
-      setLoadingItem(true);
-      setError(null);
-      const item = await getLeilaoById(id);
-
-      if (!item) {
-        setError('Leilão não encontrado.');
-        setLoadingItem(false);
-        return;
-      }
-
-      const editable = canEdit(item, { isAdmin, userId });
-      if (!editable) {
-        setError('Você não tem permissão para editar este leilão.');
-        setLoadingItem(false);
-        return;
-      }
-
-      setTitulo(item.titulo);
-      setDescricao(item.descricao ?? '');
-      setPrecoInicial(String(item.precoInicial));
-      setPrecoAtual(String(item.precoAtual));
-      setStatus(item.status);
-      setTerminaEm(toInputDateTime(item.terminaEm));
-      setLoadingItem(false);
-    }
-
-    load();
-  }, [action, id, isAdmin, userId]);
-
-  const backUrl = useMemo(() => (isAdmin ? '/admin/leiloes' : '/store/leiloes'), [isAdmin]);
-
-  function validate() {
-    if (!titulo.trim()) return 'Título é obrigatório.';
-    const pi = Number(precoInicial);
-    if (!Number.isFinite(pi) || pi < 0.01) return 'Preço inicial deve ser >= 0,01.';
-    const dt = new Date(toIsoFromLocalDateTime(terminaEm)).getTime();
-    if (!Number.isFinite(dt) || dt <= Date.now()) return 'Data/hora de término deve ser no futuro.';
-    if (action === 'edit') {
-      const pa = Number(precoAtual);
-      if (!Number.isFinite(pa) || pa < 0) return 'Preço atual inválido.';
-    }
-    return null;
-  }
+  const disabled = useMemo(() => {
+    return !titulo.trim() || !precoInicial || !terminaEm;
+  }, [titulo, precoInicial, terminaEm]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const v = validate();
-    if (v) { setError(v); return; }
+    if (disabled) return;
 
-    setLoading(true);
-    setError(null);
+    const backendUserId = getBackendUserId();
+    if (!backendUserId) {
+      toast.error('Usuário ainda não sincronizado com o backend. Recarregue a página e tente de novo.');
+      return;
+    }
+
+    const preco = Number(String(precoInicial).replace(',', '.'));
+    if (!Number.isFinite(preco) || preco <= 0) {
+      toast.error('Preço inicial inválido.');
+      return;
+    }
 
     try {
-      if (action === 'create') {
-        await createLeilao({
-          titulo,
+      if (mode === 'create') {
+        const created = await createLeilao({
+          titulo: titulo.trim(),
           descricao,
-          precoInicial: Number(precoInicial),
-          terminaEm: toIsoFromLocalDateTime(terminaEm),
-          ownerId: userId,
-          ownerNome: userNome,
+          precoInicial: preco,
+          terminaEm: fromInputDatetimeLocal(terminaEm),
+          status: 'aberto',
+          valor_incremento: 1,
+          vendedorId: backendUserId, // garante integer no banco
+          ownerId: user?.id,         // usado só no mock
+          ownerNome: user?.fullName ?? user?.username ?? 'Usuário',
+          raridade,
+          estadoCarta,
         });
-      } else {
-        if (!id) throw new Error('ID inválido');
-        await updateLeilao(id, {
-          titulo,
-          descricao,
-          precoInicial: Number(precoInicial),
-          precoAtual: Number(precoAtual),
-          status,
-          terminaEm: toIsoFromLocalDateTime(terminaEm),
-        });
-      }
 
-      router.push(backUrl);
+        if (created?.id) {
+          setLeilaoMeta(created.id, { raridade, estadoCarta });
+        }
+
+        toast.success('Leilão criado!');
+        router.push('/store/leiloes');
+        router.refresh();
+      } else {
+        if (!leilaoId) throw new Error('ID do leilão não informado.');
+
+        const updated = await updateLeilao(leilaoId, {
+          titulo: titulo.trim(),
+          descricao,
+          precoInicial: preco,
+          terminaEm: fromInputDatetimeLocal(terminaEm),
+          raridade,
+          estadoCarta,
+        });
+
+        if (updated?.id) {
+          setLeilaoMeta(updated.id, { raridade, estadoCarta });
+        }
+
+        toast.success('Leilão atualizado!');
+        router.push('/store/leiloes');
+        router.refresh();
+      }
     } catch (err: any) {
-      setError(err?.message ?? 'Erro ao salvar leilão');
-    } finally {
-      setLoading(false);
+      console.error(err);
+      toast.error(err?.message || 'Falha ao salvar leilão.');
     }
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-white">
-            {action === 'create' ? 'Criar leilão' : 'Editar leilão'}
-          </h1>
-          <p className="text-sm text-gray-300">
-            {isAdmin ? 'Admin: edite os leilões.' : 'Edite aqui seu leilão.'}
-          </p>
-        </div>
+    <form onSubmit={onSubmit} className="max-w-3xl w-full">
+      <div className="bg-[#0b0f15] rounded-2xl border border-white/10 p-8 shadow-xl">
+        <div className="grid gap-6">
+          <div>
+            <label className="block text-sm text-white/80 mb-2">Título *</label>
+            <input
+              className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              placeholder="Ex.: Charizard Raro 1ª Edição"
+            />
+          </div>
 
-        <button
-          type="button"
-          onClick={() => router.push(backUrl)}
-          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white"
-        >
-          Voltar
-        </button>
-      </div>
+          <div>
+            <label className="block text-sm text-white/80 mb-2">Descrição</label>
+            <textarea
+              className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30 min-h-[110px]"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Descreva o produto, condição, observações..."
+            />
+          </div>
 
-      {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-200">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={onSubmit} className="bg-black/30 border border-white/10 rounded-xl p-4">
-        {loadingItem ? (
-          <div className="text-gray-200">Carregando...</div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-200">Título *</label>
-              <input
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none"
-                placeholder="Ex: Charizard Raro 1ª Edição"
-              />
+              <label className="block text-sm text-white/80 mb-2">Raridade</label>
+              <select
+                className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30"
+                value={raridade}
+                onChange={(e) => setRaridade(e.target.value)}
+              >
+                <option value="">Selecione...</option>
+                {RARIDADES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="text-sm text-gray-200">Descrição</label>
-              <textarea
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none min-h-[120px]"
-                placeholder="Condição, observações, detalhes..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-200">Preço inicial (R$) *</label>
-                <input
-                  value={precoInicial}
-                  onChange={(e) => setPrecoInicial(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none"
-                  inputMode="decimal"
-                />
-              </div>
-
-              {action === 'edit' && (
-                <div>
-                  <label className="text-sm text-gray-200">Preço atual (R$)</label>
-                  <input
-                    value={precoAtual}
-                    onChange={(e) => setPrecoAtual(e.target.value)}
-                    className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none"
-                    inputMode="decimal"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-200">Termina em *</label>
-                <input
-                  type="datetime-local"
-                  value={terminaEm}
-                  onChange={(e) => setTerminaEm(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none"
-                />
-              </div>
-
-              {action === 'edit' && (
-                <div>
-                  <label className="text-sm text-gray-200">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
-                    className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white outline-none"
-                  >
-                    <option value="ativo">ativo</option>
-                    <option value="finalizado">finalizado</option>
-                    <option value="cancelado">cancelado</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => router.push(backUrl)}
-                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white"
+              <label className="block text-sm text-white/80 mb-2">Estado da carta</label>
+              <select
+                className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30"
+                value={estadoCarta}
+                onChange={(e) => setEstadoCarta(e.target.value)}
               >
-                Cancelar
-              </button>
-
-              <button
-                disabled={loading}
-                type="submit"
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-60"
-              >
-                {loading ? 'Salvando...' : (action === 'create' ? 'Criar leilão' : 'Salvar alterações')}
-              </button>
+                <option value="">Selecione...</option>
+                {ESTADOS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
           </div>
-        )}
-      </form>
-    </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-white/80 mb-2">Preço inicial (R$) *</label>
+              <input
+                className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30"
+                value={precoInicial}
+                onChange={(e) => setPrecoInicial(e.target.value)}
+                placeholder="0,01"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-white/80 mb-2">Termina em *</label>
+              <input
+                type="datetime-local"
+                className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none focus:border-white/30"
+                value={terminaEm}
+                onChange={(e) => setTerminaEm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-white/90"
+            >
+              Cancelar
+            </button>
+
+            <button
+              disabled={disabled}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600"
+              type="submit"
+            >
+              {mode === 'create' ? 'Criar leilão' : 'Salvar alterações'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
   );
 }
